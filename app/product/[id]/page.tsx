@@ -66,7 +66,7 @@ const ProductPage = () => {
                     <div className="relative group">
                         <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/20 to-amber-400/20 rounded-3xl blur-3xl group-hover:blur-2xl transition-all duration-500"></div>
                         <div className="relative bg-white rounded-3xl shadow-2xl overflow-hidden border border-yellow-100">
-                            <Image 
+                            <img 
                                 src={product.imageUrl} 
                                 alt={product.title}
                                 className="w-full h-[400px] lg:h-[600px] object-cover hover:scale-105 transition-transform duration-700"
