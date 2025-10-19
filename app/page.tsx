@@ -4,7 +4,7 @@ import { api } from "@/convex/_generated/api";
 import { useQuery } from "convex/react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Mail, Send } from "lucide-react";
+import { Mail, Send, ShoppingCart, Package, Menu, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/cartContext";
 import { UserButton, useUser } from "@clerk/nextjs";
@@ -19,6 +19,7 @@ export default function Home() {
   );
   const [referenceNumber, setReferenceNumber] = useState<number>(0);
   const [userContact, setUserContact] = useState("");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const router = useRouter();
   const { user } = useUser();
@@ -55,7 +56,9 @@ export default function Home() {
           <h1 className="text-3xl font-bold bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
             Skyyuga
           </h1>
-          <div className="flex items-center space-x-16">
+          
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-16">
             <a
               href="https://wa.me/919825376646"
               target="_blank"
@@ -69,7 +72,7 @@ export default function Home() {
             </a>
 
             <button
-              className="relative bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 px-6 py-2 rounded-full hover:from-yellow-500 hover:to-yellow-600 transition-all hidden md:block duration-300 shadow-lg hover:shadow-yellow-500/50 transform hover:scale-105 font-semibold"
+              className="relative bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 px-6 py-2 rounded-full hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 shadow-lg hover:shadow-yellow-500/50 transform hover:scale-105 font-semibold"
               onClick={() => router.push("/orders")}
             >
               <span className="flex items-center space-x-2">
@@ -77,9 +80,8 @@ export default function Home() {
               </span>
             </button>
 
-            {/* Cart Button */}
             <button
-              className="relative bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 px-6 py-2 rounded-full hover:from-yellow-500 hover:to-yellow-600 transition-all hidden md:block duration-300 shadow-lg hover:shadow-yellow-500/50 transform hover:scale-105 font-semibold"
+              className="relative bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 px-6 py-2 rounded-full hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 shadow-lg hover:shadow-yellow-500/50 transform hover:scale-105 font-semibold"
               onClick={() => setCartOpen(!cartOpen)}
             >
               <span className="flex items-center space-x-2">
@@ -105,7 +107,78 @@ export default function Home() {
               </button>
             )}
           </div>
+
+          {/* Mobile Navigation */}
+          <div className="md:hidden flex items-center space-x-4">
+            <a
+              href="https://wa.me/919825376646"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Chat on WhatsApp"
+            >
+              <Send className="w-6 h-6 text-green-500" />
+            </a>
+            
+            {user ? (
+              <UserButton />
+            ) : (
+              <button
+                className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 px-4 py-1.5 rounded-full font-semibold text-sm"
+                onClick={() => router.push('/sign-in')}
+              >
+                Sign In
+              </button>
+            )}
+
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="relative bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 p-2 rounded-full"
+            >
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {cartItems.length > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                  {cartItems.length}
+                </span>
+              )}
+            </button>
+          </div>
         </div>
+
+        {/* Mobile Dropdown Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden bg-white border-t border-yellow-200 shadow-lg">
+            <div className="px-6 py-4 space-y-3">
+              <button
+                onClick={() => {
+                  setCartOpen(true);
+                  setMobileMenuOpen(false);
+                }}
+                className="w-full flex items-center justify-between bg-yellow-50 hover:bg-yellow-100 text-gray-900 px-4 py-3 rounded-lg transition-colors font-semibold"
+              >
+                <span className="flex items-center gap-2">
+                  <ShoppingCart className="w-5 h-5" />
+                  Cart
+                </span>
+                {cartItems.length > 0 && (
+                  <span className="bg-yellow-500 text-white text-xs font-bold rounded-full w-6 h-6 flex items-center justify-center">
+                    {cartItems.length}
+                  </span>
+                )}
+              </button>
+
+              <button
+                onClick={() => {
+                  router.push("/orders");
+                  setMobileMenuOpen(false);
+                }}
+                className="w-full flex items-center gap-2 bg-yellow-50 hover:bg-yellow-100 text-gray-900 px-4 py-3 rounded-lg transition-colors font-semibold"
+              >
+                <Package className="w-5 h-5" />
+                Orders
+              </button>
+            </div>
+          </div>
+        )}
       </header>
 
       <main className="pt-24 relative z-10">

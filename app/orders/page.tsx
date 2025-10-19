@@ -180,7 +180,7 @@ const OrderPage = () => {
                                         <div className="flex justify-between items-start">
                                             <div>
                                                 <p className="text-xs font-semibold text-gray-900 uppercase mb-1">Order ID</p>
-                                                <p className="font-mono font-bold text-gray-900">#{order._id.slice(-8)}</p>
+                                                <p className="font-mono font-bold text-gray-900">#{order._id}</p>
                                             </div>
                                         </div>
                                     </div>
