@@ -7,6 +7,11 @@ export const paymentValidator = v.union(
 )
 
 export default defineSchema({
+    users : defineTable({
+        name : v.string(),
+        email : v.string(),
+    }),
+
     products : defineTable({
         title : v.string(),
         description : v.string(),
@@ -23,6 +28,7 @@ export default defineSchema({
             })
         ),
         totalCost : v.number(),
+        userId : v.id("users"),
         paymentMethod : paymentValidator,
         referenceNumber : v.number(),
         name : v.string(),

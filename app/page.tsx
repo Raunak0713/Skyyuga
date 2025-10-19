@@ -5,10 +5,10 @@ import { useQuery } from "convex/react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Mail, Send } from "lucide-react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/cartContext";
 import { UserButton, useUser } from "@clerk/nextjs";
+import Image from "next/image";
 
 export default function Home() {
   const [cartOpen, setCartOpen] = useState(false);
@@ -18,16 +18,17 @@ export default function Home() {
     "UPI"
   );
   const [referenceNumber, setReferenceNumber] = useState<number>(0);
-  const [userName, setUserName] = useState("");
-  const [userEmail, setUserEmail] = useState("");
   const [userContact, setUserContact] = useState("");
 
   const router = useRouter();
-  const user = useUser()
+  const { user } = useUser();
   
   const { cartItems, addToCart, updateQuantity, clearCart, total } = useCart();
 
   const products = useQuery(api.product.getAllProducts) ?? [];
+
+  const email = user?.primaryEmailAddress?.emailAddress;
+  const username = user?.firstName + " " + user?.lastName;
 
   const categories = [
     "All",
@@ -67,9 +68,18 @@ export default function Home() {
               <Mail className="w-6 h-6 text-blue-500 hover:text-blue-600" />
             </a>
 
+            <button
+              className="relative bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 px-6 py-2 rounded-full hover:from-yellow-500 hover:to-yellow-600 transition-all hidden md:block duration-300 shadow-lg hover:shadow-yellow-500/50 transform hover:scale-105 font-semibold"
+              onClick={() => router.push("/orders")}
+            >
+              <span className="flex items-center space-x-2">
+                <span>Orders</span>
+              </span>
+            </button>
+
             {/* Cart Button */}
             <button
-              className="relative bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 px-6 py-2 rounded-full hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 shadow-lg hover:shadow-yellow-500/50 transform hover:scale-105 font-semibold"
+              className="relative bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 px-6 py-2 rounded-full hover:from-yellow-500 hover:to-yellow-600 transition-all hidden md:block duration-300 shadow-lg hover:shadow-yellow-500/50 transform hover:scale-105 font-semibold"
               onClick={() => setCartOpen(!cartOpen)}
             >
               <span className="flex items-center space-x-2">
@@ -82,7 +92,7 @@ export default function Home() {
               </span>
             </button>
 
-            {user.isSignedIn ? (
+            {user ? (
               <div>
                 <UserButton />
               </div>
@@ -287,7 +297,7 @@ export default function Home() {
                 className="group relative bg-white border-2 border-gray-200 rounded-2xl overflow-hidden hover:border-yellow-400 transition-all duration-500 hover:shadow-2xl hover:shadow-yellow-500/20 transform hover:scale-105"
               >
                 <div className="relative overflow-hidden h-64">
-                  <Image
+                  <img
                     src={product.imageUrl}
                     alt={product.title}
                     className="w-full h-full object-cover"
@@ -368,7 +378,7 @@ export default function Home() {
                   className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 hover:border-yellow-400 transition-all duration-300"
                 >
                   <div className="flex items-center space-x-4 mb-3">
-                    <Image
+                    <img
                       src={item.imageUrl}
                       alt={item.title}
                       className="w-16 h-16 object-cover rounded-lg"
@@ -447,44 +457,30 @@ export default function Home() {
                 </button>
               </div>
 
-              {/* User Information Fields */}
-              <div className="mb-6 space-y-4">
+              {/* User Information Display */}
+              <div className="mb-6 space-y-3 bg-yellow-50 p-4 rounded-lg border border-yellow-200">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Name
-                  </label>
-                  <input
-                    type="text"
-                    value={userName}
-                    onChange={(e) => setUserName(e.target.value)}
-                    placeholder="Enter your name"
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-                  />
+                  <p className="text-sm font-medium text-gray-600">Name</p>
+                  <p className="text-gray-900 font-semibold">{username}</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    value={userEmail}
-                    onChange={(e) => setUserEmail(e.target.value)}
-                    placeholder="Enter your email"
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-                  />
+                  <p className="text-sm font-medium text-gray-600">Email</p>
+                  <p className="text-gray-900 font-semibold">{email}</p>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Contact Number
-                  </label>
-                  <input
-                    type="tel"
-                    value={userContact}
-                    onChange={(e) => setUserContact(e.target.value)}
-                    placeholder="Enter your contact number"
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-                  />
-                </div>
+              </div>
+
+              {/* Contact Number Input */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Contact Number
+                </label>
+                <input
+                  type="tel"
+                  value={userContact}
+                  onChange={(e) => setUserContact(e.target.value)}
+                  placeholder="Enter your contact number"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
+                />
               </div>
 
               {/* Payment Method Tabs */}
@@ -559,12 +555,7 @@ export default function Home() {
 
               {/* Place Order Button */}
               <button
-                disabled={
-                  !userName.trim() ||
-                  !userEmail.trim() ||
-                  !userContact.trim() ||
-                  !referenceNumber
-                }
+                disabled={!userContact.trim() || !referenceNumber}
                 onClick={async () => {
                   try {
                     const productsForOrder = cartItems.map((item) => ({
@@ -577,8 +568,8 @@ export default function Home() {
                       totalCost: total,
                       paymentMethod: paymentMethod,
                       referenceNumber: referenceNumber,
-                      name: userName,
-                      email: userEmail,
+                      name: username,
+                      email: email,
                       contactNumber: userContact,
                     };
 
@@ -601,8 +592,6 @@ export default function Home() {
                     setCheckoutModalOpen(false);
                     setCartOpen(false);
                     clearCart();
-                    setUserName("");
-                    setUserEmail("");
                     setUserContact("");
                     setReferenceNumber(0);
                   } catch (error) {
@@ -611,10 +600,7 @@ export default function Home() {
                   }
                 }}
                 className={`w-full py-3 px-4 rounded-lg text-white font-bold text-lg transition-colors ${
-                  userName.trim() &&
-                  userEmail.trim() &&
-                  userContact.trim() &&
-                  referenceNumber
+                  userContact.trim() && referenceNumber
                     ? "bg-yellow-500 hover:bg-yellow-600"
                     : "bg-yellow-300 cursor-not-allowed"
                 }`}

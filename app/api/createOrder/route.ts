@@ -1,11 +1,12 @@
 import { api } from "@/convex/_generated/api";
-import { fetchMutation } from "convex/nextjs";
+import { fetchMutation, fetchQuery } from "convex/nextjs";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req : NextRequest){
     try {
         const body = await req.json()
         const { products, totalCost, paymentMethod, referenceNumber,name, email, contactNumber } = body;
+        const user = await fetchQuery(api.user.getUserByEmail, {email : email})
         console.log("API Create Order")
         console.log({products, totalCost, paymentMethod, referenceNumber,name, email, contactNumber })
 
@@ -16,6 +17,7 @@ export async function POST(req : NextRequest){
             referenceNumber,
             name,
             email,
+            userId : user?._id!,
             contactNumber
         })
 
