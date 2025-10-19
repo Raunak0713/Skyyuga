@@ -77,6 +77,7 @@ const OrderPage = () => {
                                             <th className="px-6 py-4 text-left text-sm font-bold text-gray-900 uppercase tracking-wider">Items</th>
                                             <th className="px-6 py-4 text-left text-sm font-bold text-gray-900 uppercase tracking-wider">Total</th>
                                             <th className="px-6 py-4 text-left text-sm font-bold text-gray-900 uppercase tracking-wider">Payment</th>
+                                            <th className="px-6 py-4 text-left text-sm font-bold text-gray-900 uppercase tracking-wider">Status</th>
                                             <th className="px-6 py-4 text-left text-sm font-bold text-gray-900 uppercase tracking-wider">Actions</th>
                                         </tr>
                                     </thead>
@@ -113,6 +114,11 @@ const OrderPage = () => {
                                                         <div className="flex items-center gap-2 text-sm text-gray-600">
                                                             <CreditCard className="w-4 h-4" />
                                                             {order.paymentMethod}
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-3 py-4 whitespace-nowrap ml-2">
+                                                        <div className='bg-amber-300 rounded-2xl text-center text-sm'>
+                                                            {order.status}
                                                         </div>
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">

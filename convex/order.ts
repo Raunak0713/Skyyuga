@@ -26,6 +26,7 @@ export const createOrder = mutation({
             referenceNumber : args.referenceNumber,
             name : args.name,
             userId : args.userId,
+            status : "PENDING",
             email : args.email,
             contactNumber : args.contactNumber
         })
