@@ -4,7 +4,15 @@ import { api } from "@/convex/_generated/api";
 import { useQuery, useMutation } from "convex/react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { Mail, Send, ShoppingCart, Package, Menu, X, Phone } from "lucide-react";
+import {
+  Mail,
+  Send,
+  ShoppingCart,
+  Package,
+  Menu,
+  X,
+  Phone,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/cartContext";
 import { UserButton, useUser } from "@clerk/nextjs";
@@ -20,26 +28,26 @@ export default function Home() {
   const [referenceNumber, setReferenceNumber] = useState<number>(0);
   const [userContact, setUserContact] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  
+
   const [phoneModalOpen, setPhoneModalOpen] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
 
   const router = useRouter();
   const { user } = useUser();
-  
+
   const { cartItems, addToCart, updateQuantity, clearCart, total } = useCart();
 
   const products = useQuery(api.product.getAllProducts) ?? [];
-  
+
   const userData = useQuery(api.user.getUserByEmail, {
-    email: user?.primaryEmailAddress?.emailAddress || ""
+    email: user?.primaryEmailAddress?.emailAddress || "",
   });
-  
+
   const needsPhone = useQuery(
     api.user.checkPhone,
     userData?._id ? { id: userData._id } : "skip"
   );
-  
+
   const updatePhone = useMutation(api.user.updatePhoneNumber);
 
   const email = user?.primaryEmailAddress?.emailAddress;
@@ -65,7 +73,7 @@ export default function Home() {
     try {
       await updatePhone({
         id: userData!._id,
-        phone: phoneNumber
+        phone: phoneNumber,
       });
       toast.success("Phone number saved successfully!");
       setPhoneModalOpen(false);
@@ -107,10 +115,11 @@ export default function Home() {
                 </h2>
               </div>
             </div>
-            
+
             <div className="p-6">
               <p className="text-gray-600 mb-6 text-center">
-                Please add your phone number to continue shopping and receive order updates.
+                Please add your phone number to continue shopping and receive
+                order updates.
               </p>
 
               <div className="mb-6">
@@ -121,7 +130,9 @@ export default function Home() {
                   <input
                     type="tel"
                     value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
+                    onChange={(e) =>
+                      setPhoneNumber(e.target.value.replace(/\D/g, ""))
+                    }
                     placeholder="Enter your 10-digit phone number"
                     maxLength={10}
                     className="w-full p-3 pl-10 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all"
@@ -155,7 +166,7 @@ export default function Home() {
           <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
             Skyyuga
           </h1>
-          
+
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-16">
             <a
@@ -200,7 +211,7 @@ export default function Home() {
             ) : (
               <button
                 className="relative bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 px-6 py-2 rounded-full hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 shadow-lg hover:shadow-yellow-500/50 transform hover:scale-105 font-semibold"
-                onClick={() => router.push('/sign-in')}
+                onClick={() => router.push("/sign-in")}
               >
                 Sign In
               </button>
@@ -217,13 +228,13 @@ export default function Home() {
             >
               <Send className="w-6 h-6 text-green-500" />
             </a>
-            
+
             {user ? (
               <UserButton />
             ) : (
               <button
                 className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 px-4 py-1.5 rounded-full font-semibold text-sm"
-                onClick={() => router.push('/sign-in')}
+                onClick={() => router.push("/sign-in")}
               >
                 Sign In
               </button>
@@ -233,7 +244,11 @@ export default function Home() {
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="relative bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 p-2 rounded-full"
             >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {mobileMenuOpen ? (
+                <X className="w-6 h-6" />
+              ) : (
+                <Menu className="w-6 h-6" />
+              )}
               {cartItems.length > 0 && (
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                   {cartItems.length}
@@ -292,7 +307,8 @@ export default function Home() {
               <span className="text-gray-900">All In One Place</span>
             </h2>
             <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto px-4">
-              Tyres, Lubricating & Industrial Oil, Grease, Car Oil, Fuel & Air Filters, Car Accessories, Car Spanner & More
+              Tyres, Lubricating & Industrial Oil, Grease, Car Oil, Fuel & Air
+              Filters, Car Accessories, Car Spanner & More
             </p>
           </div>
         </section>
@@ -307,7 +323,10 @@ export default function Home() {
                   About Us
                 </h3>
                 <p className="text-gray-700 leading-relaxed text-sm md:text-base">
-                  We are serving the best products in Tyres and Lubricants since 1964 in Jamnagar District. This is a noble profession from our ancestors' time, and we have deep and years of experience in this business.
+                  We are serving the best products in Tyres and Lubricants since
+                  1964 in Jamnagar District. This is a noble profession from our
+                  ancestors' time, and we have deep and years of experience in
+                  this business.
                 </p>
               </div>
 
@@ -317,7 +336,9 @@ export default function Home() {
                   Our Vision
                 </h3>
                 <p className="text-gray-700 leading-relaxed text-sm md:text-base">
-                  We are trying to spread our business and experience across India and abroad, bringing our legacy of quality and trust to more customers.
+                  We are trying to spread our business and experience across
+                  India and abroad, bringing our legacy of quality and trust to
+                  more customers.
                 </p>
               </div>
 
@@ -327,7 +348,8 @@ export default function Home() {
                   Our Mission
                 </h3>
                 <p className="text-gray-700 leading-relaxed text-sm md:text-base">
-                  Every customer is to be delivered door-to-door with standard and original branded company fresh goods.
+                  Every customer is to be delivered door-to-door with standard
+                  and original branded company fresh goods.
                 </p>
               </div>
             </div>
@@ -338,8 +360,8 @@ export default function Home() {
                 <p className="text-xl md:text-2xl font-black text-gray-900">
                   <span className="bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
                     Serving Since 1964
-                  </span>
-                  {" "}• 60+ Years of Excellence
+                  </span>{" "}
+                  • 60+ Years of Excellence
                 </p>
               </div>
             </div>
@@ -370,7 +392,7 @@ export default function Home() {
                     alt={`Brand ${index}`}
                     height={192}
                     width={192}
-                  /> 
+                  />
                 </div>
               ))}
               {/* Duplicate for infinite effect */}
@@ -491,21 +513,62 @@ export default function Home() {
           </h3>
 
           {/* Category Filter - Responsive */}
-          <div className="flex justify-center mb-12 overflow-x-auto pb-2">
-            <div className="inline-flex bg-yellow-50 border-2 border-yellow-200 rounded-full p-1 flex-nowrap">
-              {categories.map((category) => (
-                <button
-                  key={category}
-                  onClick={() => setSelectedCategory(category)}
-                  className={`px-4 py-2 rounded-full font-semibold transition-all duration-300 whitespace-nowrap ${
-                    selectedCategory === category
-                      ? "bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 shadow-lg"
-                      : "text-gray-600 hover:text-gray-900"
-                  }`}
-                >
-                  {category}
-                </button>
-              ))}
+          <div className="mb-12">
+            {/* Mobile: Split into two rows, centered */}
+            <div className="flex flex-col items-center gap-2 sm:hidden">
+              <div className="inline-flex bg-yellow-50 border-2 border-yellow-200 rounded-full p-1 flex-nowrap">
+                {categories
+                  .slice(0, Math.ceil(categories.length / 2))
+                  .map((category) => (
+                    <button
+                      key={category}
+                      onClick={() => setSelectedCategory(category)}
+                      className={`px-4 py-2 rounded-full font-semibold transition-all duration-300 whitespace-nowrap ${
+                        selectedCategory === category
+                          ? "bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 shadow-lg"
+                          : "text-gray-600 hover:text-gray-900"
+                      }`}
+                    >
+                      {category}
+                    </button>
+                  ))}
+              </div>
+              <div className="inline-flex bg-yellow-50 border-2 border-yellow-200 rounded-full p-1 flex-nowrap">
+                {categories
+                  .slice(Math.ceil(categories.length / 2))
+                  .map((category) => (
+                    <button
+                      key={category}
+                      onClick={() => setSelectedCategory(category)}
+                      className={`px-4 py-2 rounded-full font-semibold transition-all duration-300 whitespace-nowrap ${
+                        selectedCategory === category
+                          ? "bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 shadow-lg"
+                          : "text-gray-600 hover:text-gray-900"
+                      }`}
+                    >
+                      {category}
+                    </button>
+                  ))}
+              </div>
+            </div>
+
+            {/* Desktop/Laptop: Single row, horizontal scroll if needed */}
+            <div className="hidden sm:flex justify-center overflow-x-auto pb-2">
+              <div className="inline-flex bg-yellow-50 border-2 border-yellow-200 rounded-full p-1 flex-nowrap">
+                {categories.map((category) => (
+                  <button
+                    key={category}
+                    onClick={() => setSelectedCategory(category)}
+                    className={`px-4 py-2 rounded-full font-semibold transition-all duration-300 whitespace-nowrap ${
+                      selectedCategory === category
+                        ? "bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 shadow-lg"
+                        : "text-gray-600 hover:text-gray-900"
+                    }`}
+                  >
+                    {category}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -614,7 +677,9 @@ export default function Home() {
                     <div className="flex items-center space-x-3 bg-white rounded-full px-3 py-1 border border-yellow-200">
                       <button
                         className="text-gray-900 hover:text-yellow-600 transition-colors font-bold text-lg w-8 h-8 flex items-center justify-center"
-                        onClick={() => updateQuantity(item._id, item.quantity - 1)}
+                        onClick={() =>
+                          updateQuantity(item._id, item.quantity - 1)
+                        }
                       >
                         −
                       </button>
@@ -623,7 +688,9 @@ export default function Home() {
                       </span>
                       <button
                         className="text-gray-900 hover:text-yellow-600 transition-colors font-bold text-lg w-8 h-8 flex items-center justify-center"
-                        onClick={() => updateQuantity(item._id, item.quantity + 1)}
+                        onClick={() =>
+                          updateQuantity(item._id, item.quantity + 1)
+                        }
                       >
                         +
                       </button>
