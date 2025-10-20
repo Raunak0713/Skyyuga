@@ -185,17 +185,65 @@ export default function Home() {
         {/* Hero */}
         <section className="max-w-7xl mx-auto px-6 py-20 text-center">
           <div className="space-y-6 animate-fade-in">
-            <h2 className="text-5xl md:text-7xl font-black mb-6 leading-tight">
+            <h2 className="text-4xl sm:text-5xl md:text-7xl font-black mb-6 leading-tight">
               <span className="bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
                 Everything You Need
               </span>
               <br />
               <span className="text-gray-900">All In One Place</span>
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              From construction materials to automotive parts and tools. Your
-              one-stop shop for quality products.
+            <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto px-4">
+              Tyres, Lubricating & Industrial Oil, Grease, Car Oil, Fuel & Air Filters, Car Accessories, Car Spanner & More
             </p>
+          </div>
+        </section>
+
+        {/* About Us Section */}
+        <section className="max-w-7xl mx-auto px-6 py-12 mb-12">
+          <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-3xl border-2 border-yellow-200 p-8 md:p-12 shadow-xl">
+            <div className="grid md:grid-cols-3 gap-8">
+              {/* About Us */}
+              <div className="space-y-4">
+                <h3 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
+                  About Us
+                </h3>
+                <p className="text-gray-700 leading-relaxed text-sm md:text-base">
+                  We are serving the best products in Tyres and Lubricants since 1964 in Jamnagar District. This is a noble profession from our ancestors' time, and we have deep and years of experience in this business.
+                </p>
+              </div>
+
+              {/* Our Vision */}
+              <div className="space-y-4">
+                <h3 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
+                  Our Vision
+                </h3>
+                <p className="text-gray-700 leading-relaxed text-sm md:text-base">
+                  We are trying to spread our business and experience across India and abroad, bringing our legacy of quality and trust to more customers.
+                </p>
+              </div>
+
+              {/* Our Mission */}
+              <div className="space-y-4">
+                <h3 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
+                  Our Mission
+                </h3>
+                <p className="text-gray-700 leading-relaxed text-sm md:text-base">
+                  Every customer is to be delivered door-to-door with standard and original branded company fresh goods.
+                </p>
+              </div>
+            </div>
+
+            {/* Legacy Badge */}
+            <div className="mt-8 text-center">
+              <div className="inline-block bg-white border-2 border-yellow-300 rounded-full px-6 py-3 shadow-lg">
+                <p className="text-xl md:text-2xl font-black text-gray-900">
+                  <span className="bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
+                    Serving Since 1964
+                  </span>
+                  {" "}• 60+ Years of Excellence
+                </p>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -215,7 +263,7 @@ export default function Home() {
               ].map((src, index) => (
                 <div
                   key={index}
-                  className="w-48 h-48 overflow-hidden rounded-xl shadow-lg flex-shrink-0"
+                  className="w-36 h-36 md:w-48 md:h-48 overflow-hidden rounded-xl shadow-lg flex-shrink-0"
                 >
                   <Image
                     className="w-full h-full object-fit"
@@ -223,7 +271,7 @@ export default function Home() {
                     alt={`Brand ${index}`}
                     height={192}
                     width={192}
-                  />
+                  /> 
                 </div>
               ))}
               {/* Duplicate for infinite effect */}
@@ -239,7 +287,7 @@ export default function Home() {
               ].map((src, index) => (
                 <div
                   key={"dup-" + index}
-                  className="w-48 h-48 overflow-hidden rounded-xl shadow-lg flex-shrink-0"
+                  className="w-36 h-36 md:w-48 md:h-48 overflow-hidden rounded-xl shadow-lg flex-shrink-0"
                 >
                   <Image
                     className="w-full h-full object-fit"
@@ -254,7 +302,7 @@ export default function Home() {
           </div>
 
           {/* Layer 2 - scroll right */}
-          <div className="relative w-full mt-10">
+          <div className="relative w-full mt-20">
             <div className="flex animate-scroll-right gap-x-20">
               {[
                 "/images/apollo.jpeg",
@@ -268,7 +316,7 @@ export default function Home() {
               ].map((src, index) => (
                 <div
                   key={"layer2-" + index}
-                  className="w-48 h-48 overflow-hidden rounded-xl shadow-lg flex-shrink-0"
+                  className="w-36 h-36 md:w-48 md:h-48 overflow-hidden rounded-xl shadow-lg flex-shrink-0"
                 >
                   <Image
                     className="w-full h-full object-fit"
@@ -292,7 +340,7 @@ export default function Home() {
               ].map((src, index) => (
                 <div
                   key={"layer2-dup-" + index}
-                  className="w-48 h-48 overflow-hidden rounded-xl shadow-lg flex-shrink-0"
+                  className="w-36 h-36 md:w-48 md:h-48 overflow-hidden rounded-xl shadow-lg flex-shrink-0"
                 >
                   <Image
                     className="w-full h-full object-fit"

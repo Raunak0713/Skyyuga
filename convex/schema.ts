@@ -10,6 +10,7 @@ export const orderStatusValidator = v.union(
     v.literal("PENDING"),
     v.literal("ACCEPTED"),
     v.literal("REJECTED"),
+    v.literal("DELIVERING"),
     v.literal("DELIVERED")
 )
 
@@ -44,3 +45,5 @@ export default defineSchema({
         contactNumber : v.string(),
     })
 })
+
+
