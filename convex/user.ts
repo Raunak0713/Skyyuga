@@ -44,7 +44,7 @@ export const getUserByEmail = query({
 export const createUser = mutation({
     args : {
         name : v.string(),
-        email : v.string()
+        email : v.string(),
     },
     handler : async(ctx, args) => {
 
@@ -53,9 +53,31 @@ export const createUser = mutation({
 
         const newUser = await ctx.db.insert("users", {
             name : args.name,
-            email : args.email
+            email : args.email,
         })
 
         return newUser
+    }
+})
+
+export const checkPhone = query({
+    args : {
+        id : v.id("users")
+    },
+    handler : async(ctx, args) => {
+        const user = await ctx.db.get(args.id)
+        return user?.phone == null
+    }
+})
+
+export const updatePhoneNumber = mutation({
+    args : {
+        id : v.id("users"),
+        phone : v.string()
+    },
+    handler : async(ctx, args) => {
+        await ctx.db.patch(args.id, {
+            phone : args.phone
+        })
     }
 })

@@ -1,10 +1,10 @@
 "use client";
 
 import { api } from "@/convex/_generated/api";
-import { useQuery } from "convex/react";
-import { useState } from "react";
+import { useQuery, useMutation } from "convex/react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { Mail, Send, ShoppingCart, Package, Menu, X } from "lucide-react";
+import { Mail, Send, ShoppingCart, Package, Menu, X, Phone } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/cartContext";
 import { UserButton, useUser } from "@clerk/nextjs";
@@ -20,6 +20,9 @@ export default function Home() {
   const [referenceNumber, setReferenceNumber] = useState<number>(0);
   const [userContact, setUserContact] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
+  const [phoneModalOpen, setPhoneModalOpen] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState("");
 
   const router = useRouter();
   const { user } = useUser();
@@ -27,9 +30,51 @@ export default function Home() {
   const { cartItems, addToCart, updateQuantity, clearCart, total } = useCart();
 
   const products = useQuery(api.product.getAllProducts) ?? [];
+  
+  const userData = useQuery(api.user.getUserByEmail, {
+    email: user?.primaryEmailAddress?.emailAddress || ""
+  });
+  
+  const needsPhone = useQuery(
+    api.user.checkPhone,
+    userData?._id ? { id: userData._id } : "skip"
+  );
+  
+  const updatePhone = useMutation(api.user.updatePhoneNumber);
 
   const email = user?.primaryEmailAddress?.emailAddress;
   const username = user?.firstName + " " + user?.lastName;
+
+  useEffect(() => {
+    if (user && userData && needsPhone) {
+      setPhoneModalOpen(true);
+    }
+  }, [user, userData, needsPhone]);
+
+  const handleSavePhoneNumber = async () => {
+    if (!phoneNumber.trim()) {
+      toast.error("Please enter a valid phone number");
+      return;
+    }
+
+    if (phoneNumber.length < 10) {
+      toast.error("Phone number must be at least 10 digits");
+      return;
+    }
+
+    try {
+      await updatePhone({
+        id: userData!._id,
+        phone: phoneNumber
+      });
+      toast.success("Phone number saved successfully!");
+      setPhoneModalOpen(false);
+      setPhoneNumber("");
+    } catch (error) {
+      toast.error("Failed to save phone number. Please try again.");
+      console.error("Error saving phone number:", error);
+    }
+  };
 
   const categories = [
     "All",
@@ -50,10 +95,64 @@ export default function Home() {
         ></div>
       </div>
 
+      {/* Phone Number Modal */}
+      {phoneModalOpen && (
+        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-auto overflow-hidden animate-fade-in">
+            <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 p-6">
+              <div className="flex items-center justify-center space-x-3">
+                <Phone className="w-8 h-8 text-gray-900" />
+                <h2 className="text-2xl font-bold text-gray-900">
+                  Complete Your Profile
+                </h2>
+              </div>
+            </div>
+            
+            <div className="p-6">
+              <p className="text-gray-600 mb-6 text-center">
+                Please add your phone number to continue shopping and receive order updates.
+              </p>
+
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Phone Number <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="tel"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ''))}
+                    placeholder="Enter your 10-digit phone number"
+                    maxLength={10}
+                    className="w-full p-3 pl-10 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all"
+                  />
+                  <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  We'll use this to contact you about your orders
+                </p>
+              </div>
+
+              <button
+                onClick={handleSavePhoneNumber}
+                disabled={!phoneNumber.trim() || phoneNumber.length < 10}
+                className={`w-full py-3 px-4 rounded-lg text-white font-bold text-lg transition-all transform ${
+                  phoneNumber.trim() && phoneNumber.length >= 10
+                    ? "bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 hover:scale-105 shadow-lg"
+                    : "bg-gray-300 cursor-not-allowed"
+                }`}
+              >
+                Save & Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="fixed top-0 w-full z-50 backdrop-blur-xl bg-white/80 border-b border-yellow-200">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
+          <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
             Skyyuga
           </h1>
           
@@ -466,7 +565,7 @@ export default function Home() {
 
       {/* Cart Sidebar */}
       <div
-        className={`fixed top-0 right-0 h-full w-96 bg-white shadow-2xl transform transition-transform duration-500 ease-out z-50 border-l-2 border-yellow-300 ${
+        className={`fixed top-0 right-0 h-full w-full sm:w-96 bg-white shadow-2xl transform transition-transform duration-500 ease-out z-50 border-l-2 border-yellow-300 ${
           cartOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
