@@ -1,7 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { api } from "./_generated/api";
-import { checkIsAdmin } from "@/lib/checkAdmin";
 
 export const checkUser = query({
     args : {

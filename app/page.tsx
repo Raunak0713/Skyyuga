@@ -797,7 +797,7 @@ export default function Home() {
                   <div>
                     <h4 className="text-lg font-semibold mb-2">UPI ID</h4>
                     <div className="bg-gray-100 p-3 rounded-lg">
-                      <p className="font-mono text-gray-800">example@okaxis</p>
+                      <p className="font-mono text-gray-800">9825376646.ibz@icici</p>
                     </div>
                   </div>
                 ) : (
@@ -806,10 +806,10 @@ export default function Home() {
                     <div className="bg-gray-100 p-3 rounded-lg space-y-2">
                       <p className="font-mono text-gray-800">
                         Account Number:{" "}
-                        <span className="font-bold">1234567</span>
+                        <span className="font-bold">072605002943</span>
                       </p>
                       <p className="font-mono text-gray-800">
-                        IFSC Code: <span className="font-bold">EX0001212</span>
+                        IFSC Code: <span className="font-bold">ICIC0000726</span>
                       </p>
                     </div>
                   </div>

@@ -4,7 +4,7 @@ import { api } from '@/convex/_generated/api';
 import { useUser } from '@clerk/nextjs';
 import { useQuery } from 'convex/react';
 import React, { useState } from 'react';
-import { ArrowLeft, Package, Calendar, CreditCard, Phone, Mail, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { ArrowLeft, Package, Calendar, CreditCard, Phone, Mail } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Id } from '@/convex/_generated/dataModel';
 
@@ -143,7 +143,7 @@ const OrderPage = () => {
                                                                         <p className="text-sm text-gray-600"><span className="font-semibold">Name:</span> {order.name}</p>
                                                                         <p className="text-sm text-gray-600"><span className="font-semibold">Email:</span> {order.email}</p>
                                                                         <p className="text-sm text-gray-600 flex items-center gap-2">
-                                                                            <Phone className="w-4 h-4" />
+                                                                            Phone:
                                                                             {order.contactNumber}
                                                                         </p>
                                                                     </div>
