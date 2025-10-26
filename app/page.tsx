@@ -849,7 +849,7 @@ export default function Home() {
                       referenceNumber: referenceNumber,
                       name: username,
                       email: email,
-                      contactNumber: userContact,
+                      contactNumber: phone,
                     };
 
                     const response = await fetch("/api/createOrder", {
