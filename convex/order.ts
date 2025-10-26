@@ -47,3 +47,23 @@ export const getOrdersByEmail = query({
         return orders || []
     }
 })
+
+export const getAllOrders = query({
+    args : {
+        email : v.string()
+    },
+    handler : async(ctx, args) => {
+        const validAdmins = process.env.ADMIN_EMAILS?.split(",").map(e => e.trim());
+
+        if (!validAdmins || validAdmins.length === 0) {
+            return { error: "Admin list not configured" };
+        }
+
+        if (!validAdmins.includes(args.email)) {
+            return { error: "Access denied" };
+        }
+
+        const orders = await ctx.db.query("orders").collect()
+        return orders
+    }
+})

@@ -11,9 +11,9 @@ export const getProductById = query({
 })
 
 export const getAllProducts = query({
+    args : {},
     handler : async(ctx) => {
-        const products = await ctx.db
-        .query("products")
+        const products = await ctx.db.query("products")
         .collect()
         return products
     },

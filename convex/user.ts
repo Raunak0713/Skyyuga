@@ -1,6 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { api } from "./_generated/api";
+import { checkIsAdmin } from "@/lib/checkAdmin";
 
 export const checkUser = query({
     args : {
@@ -81,3 +82,23 @@ export const updatePhoneNumber = mutation({
         })
     }
 })
+
+export const getAllUsers = query({
+  args: {
+        email: v.string(),
+  },
+  handler: async (ctx, args) => {
+        const validAdmins = process.env.ADMIN_EMAILS?.split(",").map(e => e.trim());
+
+        if (!validAdmins || validAdmins.length === 0) {
+            return { error: "Admin list not configured" };
+        }
+
+        if (!validAdmins.includes(args.email)) {
+            return { error: "Access denied" };
+        }
+
+        const users = await ctx.db.query("users").collect();
+        return users;
+  },
+});

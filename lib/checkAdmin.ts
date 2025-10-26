@@ -7,7 +7,6 @@ export async function checkIsAdmin(): Promise<boolean> {
   
   if (!userId) return false;
 
-  // Get user from Clerk
   const { clerkClient } = await import("@clerk/nextjs/server");
   const user = await currentUser()
   if(!user) return false

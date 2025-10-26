@@ -52,6 +52,7 @@ export default function Home() {
 
   const email = user?.primaryEmailAddress?.emailAddress;
   const username = user?.firstName + " " + user?.lastName;
+  const phone = userData?.phone
 
   useEffect(() => {
     if (user && userData && needsPhone) {
@@ -754,21 +755,12 @@ export default function Home() {
                   <p className="text-sm font-medium text-gray-600">Email</p>
                   <p className="text-gray-900 font-semibold">{email}</p>
                 </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Phone</p>
+                  <p className="text-gray-900 font-semibold">{phone}</p>
+                </div>
               </div>
 
-              {/* Contact Number Input */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Contact Number
-                </label>
-                <input
-                  type="tel"
-                  value={userContact}
-                  onChange={(e) => setUserContact(e.target.value)}
-                  placeholder="Enter your contact number"
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
-                />
-              </div>
 
               {/* Payment Method Tabs */}
               <div className="flex border-b border-gray-200 mb-6">
