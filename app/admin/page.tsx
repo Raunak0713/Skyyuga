@@ -3,9 +3,10 @@ import React, { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useUser } from "@clerk/nextjs";
-import { Users, Package, ShoppingBag, Plus, X, Search, Pencil, Mail, Phone, Calendar, Check } from "lucide-react";
+import { Users, Package, ShoppingBag, Plus, X, Search, Pencil, Mail, Phone, Calendar, Check, Upload, Trash2 } from "lucide-react";
 import { Id } from "@/convex/_generated/dataModel";
 import { toast } from "sonner";
+import { UploadButton } from "@/lib/uploadthing";
 
 type OrderStatus = "PENDING" | "ACCEPTED" | "REJECTED" | "DELIVERING" | "DELIVERED";
 
@@ -22,12 +23,15 @@ const AdminPage = () => {
   const createProduct = useMutation(api.product.createProducts);
   const updateOrderStatus = useMutation(api.order.updateOrderStatus);
   const updateProduct = useMutation(api.product.updateProduct);
+  const deleteProduct = useMutation(api.product.deleteProduct);
 
   const [activeTab, setActiveTab] = useState("users");
   const [searchTerm, setSearchTerm] = useState("");
   const [addProductModal, setAddProductModal] = useState(false);
   const [editProductModal, setEditProductModal] = useState(false);
   const [editOrderModal, setEditOrderModal] = useState(false);
+  const [deleteConfirmModal, setDeleteConfirmModal] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<Id<"products"> | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [newProduct, setNewProduct] = useState({
@@ -37,6 +41,8 @@ const AdminPage = () => {
     cost: 0,
     category: "",
   });
+  const [isUploading, setIsUploading] = useState(false);
+  const [isEditUploading, setIsEditUploading] = useState(false);
 
   // Order status filter
   const [statusFilters, setStatusFilters] = useState<Set<OrderStatus>>(
@@ -95,7 +101,7 @@ const AdminPage = () => {
     e.preventDefault();
     try {
       await createProduct(newProduct);
-      alert("Product created successfully!");
+      toast.success("Product created successfully!");
       setAddProductModal(false);
       setNewProduct({
         title: "",
@@ -105,7 +111,7 @@ const AdminPage = () => {
         category: "",
       });
     } catch (err) {
-      alert("Failed to create product.");
+      toast.error("Failed to create product.");
     }
   };
 
@@ -122,11 +128,11 @@ const AdminPage = () => {
         cost: selectedProduct.cost,
         category: selectedProduct.category,
       });
-      alert("Product updated successfully!");
+      toast.success("Product updated successfully!");
       setEditProductModal(false);
       setSelectedProduct(null);
     } catch (err) {
-      alert("Failed to update product.");
+      toast.error("Failed to update product.");
     }
   };
 
@@ -143,6 +149,24 @@ const AdminPage = () => {
       setSelectedOrder(null);
     } catch (err) {
       toast.error("Failed to update order status.");
+    }
+  };
+
+  const handleProductDelete = async (productId: Id<"products">) => {
+    setProductToDelete(productId);
+    setDeleteConfirmModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!productToDelete) return;
+    
+    try {
+      await deleteProduct({ productId: productToDelete });
+      toast.success("Product deleted successfully!");
+      setDeleteConfirmModal(false);
+      setProductToDelete(null);
+    } catch (err) {
+      toast.error("Failed to delete product.");
     }
   };
 
@@ -511,6 +535,13 @@ const AdminPage = () => {
                         >
                           <Pencil className="w-4 h-4 text-gray-900" />
                         </button>
+                        <button
+                          onClick={() => handleProductDelete(product._id)}
+                          className="p-2 bg-white hover:bg-red-100 rounded-full transition-colors shadow-lg"
+                          title="Delete Product"
+                        >
+                          <Trash2 className="w-4 h-4 text-red-600" />
+                        </button>
                       </div>
                     </div>
                     <div className="p-6 space-y-3">
@@ -599,16 +630,61 @@ const AdminPage = () => {
 
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">
-                  Image URL <span className="text-red-500">*</span>
+                  Product Image <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text"
-                  value={newProduct.imageUrl}
-                  onChange={(e) => setNewProduct({ ...newProduct, imageUrl: e.target.value })}
-                  className="w-full p-3 border-2 border-yellow-200 rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all"
-                  placeholder="https://example.com/image.jpg"
-                  required
-                />
+                
+                {!newProduct.imageUrl ? (
+                  <div className="w-full">
+                    <div className="w-full flex justify-center items-center border-2 border-dashed border-yellow-300 rounded-xl p-8 bg-yellow-50 hover:bg-yellow-100 transition-colors">
+                      <div className="text-center">
+                        <Upload className="w-12 h-12 text-yellow-500 mx-auto mb-3" />
+                        <UploadButton
+                          endpoint="imageUploader"
+                          appearance={{
+                            button: "bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 font-bold px-8 text-sm py-3 rounded-xl hover:from-yellow-500 hover:to-yellow-600 transition-all ut-ready:bg-gradient-to-r ut-ready:from-yellow-400 ut-ready:to-yellow-500 ut-uploading:cursor-not-allowed ut-uploading:opacity-50",
+                            container: "w-full flex flex-col items-center justify-center gap-2",
+                            allowedContent: "text-gray-600 text-sm"
+                          }}
+                          onClientUploadComplete={(res) => {
+                            if (res && res[0]) {
+                              setNewProduct({ ...newProduct, imageUrl: res[0].url });
+                              toast.success("Image uploaded successfully!");
+                            }
+                            setIsUploading(false);
+                          }}
+                          onUploadBegin={() => {
+                            setIsUploading(true);
+                          }}
+                          onUploadError={(error) => {
+                            toast.error("Upload failed!");
+                            setIsUploading(false);
+                          }}
+                        />
+                        {isUploading && (
+                          <p className="text-sm text-yellow-600 font-medium mt-3">Uploading...</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="relative">
+                    <img
+                      src={newProduct.imageUrl}
+                      alt="Preview"
+                      className="w-full h-64 object-cover rounded-xl border-2 border-yellow-200"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setNewProduct({ ...newProduct, imageUrl: "" })}
+                      className="absolute top-2 right-2 p-2 bg-red-500 hover:bg-red-600 text-white rounded-full transition-colors shadow-lg"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                    <div className="absolute bottom-2 left-2 right-2 bg-black/70 text-white px-3 py-2 rounded-lg text-sm">
+                      Image uploaded successfully
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div>
@@ -628,9 +704,10 @@ const AdminPage = () => {
 
               <button
                 type="submit"
-                className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 py-4 rounded-xl hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 shadow-lg hover:shadow-yellow-500/50 font-bold text-lg transform hover:scale-105"
+                disabled={isUploading}
+                className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 py-4 rounded-xl hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 shadow-lg hover:shadow-yellow-500/50 font-bold text-lg transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Create Product
+                {isUploading ? "Uploading Image..." : "Create Product"}
               </button>
             </form>
           </div>
@@ -710,16 +787,61 @@ const AdminPage = () => {
 
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">
-                  Image URL <span className="text-red-500">*</span>
+                  Product Image <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text"
-                  value={selectedProduct.imageUrl}
-                  onChange={(e) => setSelectedProduct({ ...selectedProduct, imageUrl: e.target.value })}
-                  className="w-full p-3 border-2 border-yellow-200 rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all"
-                  placeholder="https://example.com/image.jpg"
-                  required
-                />
+                
+                {!selectedProduct.imageUrl ? (
+                  <div className="w-full">
+                    <div className="w-full flex justify-center items-center border-2 border-dashed border-yellow-300 rounded-xl p-8 bg-yellow-50 hover:bg-yellow-100 transition-colors">
+                      <div className="text-center">
+                        <Upload className="w-12 h-12 text-yellow-500 mx-auto mb-3" />
+                        <UploadButton
+                          endpoint="imageUploader"
+                          appearance={{
+                            button: "bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 font-bold px-8 py-3 rounded-xl hover:from-yellow-500 hover:to-yellow-600 transition-all ut-ready:bg-gradient-to-r ut-ready:from-yellow-400 ut-ready:to-yellow-500 ut-uploading:cursor-not-allowed ut-uploading:opacity-50",
+                            container: "w-full flex flex-col items-center justify-center gap-2",
+                            allowedContent: "text-gray-600 text-sm"
+                          }}
+                          onClientUploadComplete={(res) => {
+                            if (res && res[0]) {
+                              setSelectedProduct({ ...selectedProduct, imageUrl: res[0].url });
+                              toast.success("Image uploaded successfully!");
+                            }
+                            setIsEditUploading(false);
+                          }}
+                          onUploadBegin={() => {
+                            setIsEditUploading(true);
+                          }}
+                          onUploadError={(error) => {
+                            toast.error("Upload failed!");
+                            setIsEditUploading(false);
+                          }}
+                        />
+                        {isEditUploading && (
+                          <p className="text-sm text-yellow-600 font-medium mt-3">Uploading...</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="relative">
+                    <img
+                      src={selectedProduct.imageUrl}
+                      alt="Preview"
+                      className="w-full h-64 object-cover rounded-xl border-2 border-yellow-200"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setSelectedProduct({ ...selectedProduct, imageUrl: "" })}
+                      className="absolute top-2 right-2 p-2 bg-red-500 hover:bg-red-600 text-white rounded-full transition-colors shadow-lg"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                    <div className="absolute bottom-2 left-2 right-2 bg-black/70 text-white px-3 py-2 rounded-lg text-sm">
+                      Image uploaded successfully
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div>
@@ -739,9 +861,10 @@ const AdminPage = () => {
 
               <button
                 type="submit"
-                className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 py-4 rounded-xl hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 shadow-lg hover:shadow-yellow-500/50 font-bold text-lg transform hover:scale-105"
+                disabled={isEditUploading}
+                className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 py-4 rounded-xl hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 shadow-lg hover:shadow-yellow-500/50 font-bold text-lg transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Update Product
+                {isEditUploading ? "Uploading Image..." : "Update Product"}
               </button>
             </form>
           </div>
@@ -807,6 +930,67 @@ const AdminPage = () => {
                     </button>
                   ))}
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmModal && (
+        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md mx-auto overflow-hidden animate-fade-in">
+            <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <Trash2 className="w-8 h-8 text-gray-900" />
+                  <h2 className="text-2xl font-bold text-gray-900">Delete Product</h2>
+                </div>
+                <button
+                  onClick={() => {
+                    setDeleteConfirmModal(false);
+                    setProductToDelete(null);
+                  }}
+                  className="text-gray-900 hover:bg-white/20 rounded-full p-2 transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-6">
+              <div className="text-center space-y-3">
+                <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto">
+                  <Trash2 className="w-8 h-8 text-yellow-600" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900">Are you absolutely sure?</h3>
+                <p className="text-gray-600">
+                  This action cannot be undone. This will permanently delete the product from your store.
+                </p>
+              </div>
+
+              <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4">
+                <p className="text-sm text-gray-800 font-medium">
+                  ⚠️ Warning: All product data will be lost permanently
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setDeleteConfirmModal(false);
+                    setProductToDelete(null);
+                  }}
+                  className="flex-1 px-6 py-3 border-2 border-yellow-200 text-gray-700 rounded-xl hover:border-yellow-400 hover:bg-yellow-50 transition-all duration-300 font-bold"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="flex-1 px-6 py-3 bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 rounded-xl hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 shadow-lg hover:shadow-yellow-500/50 font-bold transform hover:scale-105"
+                >
+                  Delete Product
+                </button>
               </div>
             </div>
           </div>
