@@ -834,7 +834,7 @@ export default function Home() {
 
               {/* Place Order Button */}
               <button
-                disabled={!userContact.trim() || !referenceNumber}
+                disabled={!referenceNumber}
                 onClick={async () => {
                   try {
                     const productsForOrder = cartItems.map((item) => ({
