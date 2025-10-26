@@ -17,6 +17,7 @@ import { useRouter } from "next/navigation";
 import { useCart } from "@/context/cartContext";
 import { UserButton, useUser } from "@clerk/nextjs";
 import Image from "next/image";
+import { checkIsAdmin } from "@/lib/checkAdmin";
 
 export default function Home() {
   const [cartOpen, setCartOpen] = useState(false);
@@ -25,12 +26,14 @@ export default function Home() {
   const [paymentMethod, setPaymentMethod] = useState<"UPI" | "Bank Transfer">(
     "UPI"
   );
-  const [referenceNumber, setReferenceNumber] = useState<number>(0);
+  const [referenceNumber, setReferenceNumber] = useState<number | null>();
   const [userContact, setUserContact] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const [phoneModalOpen, setPhoneModalOpen] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [orderProcessing, setOrderProcessing] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const router = useRouter();
   const { user } = useUser();
@@ -59,6 +62,20 @@ export default function Home() {
       setPhoneModalOpen(true);
     }
   }, [user, userData, needsPhone]);
+
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (user) {
+        const adminStatus = await checkIsAdmin();
+        console.log(adminStatus)
+        setIsAdmin(adminStatus);
+      } else {
+        setIsAdmin(false);
+      }
+    };
+
+    checkAdminStatus();
+  }, [user]);
 
   const handleSavePhoneNumber = async () => {
     if (!phoneNumber.trim()) {
@@ -204,6 +221,16 @@ export default function Home() {
                 )}
               </span>
             </button>
+            {isAdmin && (
+                <button
+                  className="relative bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 px-6 py-2 rounded-full hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 shadow-lg hover:shadow-yellow-500/50 transform hover:scale-105 font-semibold"
+                  onClick={() => router.push("/admin")}
+                >
+                  <span className="flex items-center space-x-2">
+                    <span>Admin</span>
+                  </span>
+                </button>
+              )}
 
             {user ? (
               <div>
@@ -291,6 +318,19 @@ export default function Home() {
                 <Package className="w-5 h-5" />
                 Orders
               </button>
+
+              {isAdmin && (
+                <button
+                  onClick={() => {
+                    router.push("/admin");
+                    setMobileMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-2 bg-yellow-50 hover:bg-yellow-100 text-gray-900 px-4 py-3 rounded-lg transition-colors font-semibold"
+                >
+                  <Package className="w-5 h-5" />
+                  Admin
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -825,7 +865,7 @@ export default function Home() {
                 </label>
                 <input
                   type="number"
-                  value={referenceNumber}
+                  value={referenceNumber || ""}
                   onChange={(e) => setReferenceNumber(Number(e.target.value))}
                   placeholder={`Enter your ${paymentMethod === "UPI" ? "UTR" : "transaction"} reference number`}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
@@ -834,8 +874,11 @@ export default function Home() {
 
               {/* Place Order Button */}
               <button
-                disabled={!referenceNumber}
+                disabled={!referenceNumber || orderProcessing}
                 onClick={async () => {
+                  if (orderProcessing) return;
+                  
+                  setOrderProcessing(true);
                   try {
                     const productsForOrder = cartItems.map((item) => ({
                       productId: item._id,
@@ -872,19 +915,21 @@ export default function Home() {
                     setCartOpen(false);
                     clearCart();
                     setUserContact("");
-                    setReferenceNumber(0);
+                    setReferenceNumber(null);
                   } catch (error) {
                     toast.error("Failed to place order. Please try again.");
                     console.error("Order placement error:", error);
+                  } finally {
+                    setOrderProcessing(false);
                   }
                 }}
-                className={`w-full py-3 px-4 rounded-lg text-white font-bold text-lg transition-colors ${
-                  userContact.trim() && referenceNumber
-                    ? "bg-yellow-500 hover:bg-yellow-600"
-                    : "bg-yellow-300 cursor-not-allowed"
+                className={`w-full py-3 px-4 rounded-lg text-white font-bold text-lg transition-all ${
+                  referenceNumber && !orderProcessing
+                    ? "bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 cursor-pointer transform hover:scale-105"
+                    : "bg-gray-300 cursor-not-allowed"
                 }`}
               >
-                Place Order
+                {orderProcessing ? "Processing..." : "Place Order"}
               </button>
             </div>
           </div>
