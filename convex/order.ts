@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { paymentValidator } from "./schema";
+import { orderStatusValidator, paymentValidator } from "./schema";
 
 export const createOrder = mutation({
     args : {
@@ -49,21 +49,35 @@ export const getOrdersByEmail = query({
 })
 
 export const getAllOrders = query({
-    args : {
-        email : v.string()
+  args: {
+    email: v.string()
+  },
+  handler: async (ctx, args) => {
+    const validAdmins = process.env.ADMIN_EMAILS?.split(",").map(e => e.trim());
+
+    if (!validAdmins || validAdmins.length === 0) {
+      return { error: "Admin list not configured" };
+    }
+
+    if (!validAdmins.includes(args.email)) {
+      return { error: "Access denied" };
+    }
+
+    const orders = await ctx.db.query("orders").order("desc").collect();
+    return orders;
+  }
+});
+
+export const updateOrderStatus = mutation({
+    args: {
+        orderId : v.id("orders"),
+        status : orderStatusValidator,
     },
     handler : async(ctx, args) => {
-        const validAdmins = process.env.ADMIN_EMAILS?.split(",").map(e => e.trim());
+        const order = await ctx.db.patch(args.orderId, {
+            status : args.status
+        })
 
-        if (!validAdmins || validAdmins.length === 0) {
-            return { error: "Admin list not configured" };
-        }
-
-        if (!validAdmins.includes(args.email)) {
-            return { error: "Access denied" };
-        }
-
-        const orders = await ctx.db.query("orders").collect()
-        return orders
+        return order
     }
 })

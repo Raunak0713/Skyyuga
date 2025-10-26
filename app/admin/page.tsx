@@ -1,9 +1,13 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useUser } from "@clerk/nextjs";
-import { Users, Package, ShoppingBag, Plus, X, Search, Filter, Mail, Phone, Calendar } from "lucide-react";
+import { Users, Package, ShoppingBag, Plus, X, Search, Pencil, Mail, Phone, Calendar, Check } from "lucide-react";
+import { Id } from "@/convex/_generated/dataModel";
+import { toast } from "sonner";
+
+type OrderStatus = "PENDING" | "ACCEPTED" | "REJECTED" | "DELIVERING" | "DELIVERED";
 
 const AdminPage = () => {
   const { user } = useUser();
@@ -14,12 +18,18 @@ const AdminPage = () => {
   const allOrders = useQuery(api.order.getAllOrders, { email });
   const allProducts = useQuery(api.product.getAllProducts);
 
-  // Product creation mutation
+  // Mutations
   const createProduct = useMutation(api.product.createProducts);
+  const updateOrderStatus = useMutation(api.order.updateOrderStatus);
+  const updateProduct = useMutation(api.product.updateProduct);
 
   const [activeTab, setActiveTab] = useState("users");
   const [searchTerm, setSearchTerm] = useState("");
   const [addProductModal, setAddProductModal] = useState(false);
+  const [editProductModal, setEditProductModal] = useState(false);
+  const [editOrderModal, setEditOrderModal] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [newProduct, setNewProduct] = useState({
     title: "",
     description: "",
@@ -27,6 +37,30 @@ const AdminPage = () => {
     cost: 0,
     category: "",
   });
+
+  // Order status filter
+  const [statusFilters, setStatusFilters] = useState<Set<OrderStatus>>(
+    new Set(["PENDING", "ACCEPTED", "REJECTED", "DELIVERING", "DELIVERED"])
+  );
+  const [showStatusFilter, setShowStatusFilter] = useState(false);
+  const filterRef = useRef<HTMLDivElement>(null);
+
+  // Close filter dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+        setShowStatusFilter(false);
+      }
+    };
+
+    if (showStatusFilter) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showStatusFilter]);
 
   if (!allUsers || !allOrders || !allProducts) {
     return (
@@ -75,11 +109,60 @@ const AdminPage = () => {
     }
   };
 
+  const handleProductUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedProduct) return;
+    
+    try {
+      await updateProduct({
+        productId: selectedProduct._id,
+        title: selectedProduct.title,
+        description: selectedProduct.description,
+        imageUrl: selectedProduct.imageUrl,
+        cost: selectedProduct.cost,
+        category: selectedProduct.category,
+      });
+      alert("Product updated successfully!");
+      setEditProductModal(false);
+      setSelectedProduct(null);
+    } catch (err) {
+      alert("Failed to update product.");
+    }
+  };
+
+  const handleOrderStatusUpdate = async (newStatus: OrderStatus) => {
+    if (!selectedOrder) return;
+    
+    try {
+      await updateOrderStatus({
+        orderId: selectedOrder._id,
+        status: newStatus,
+      });
+      toast.success("Order status updated successfully!");
+      setEditOrderModal(false);
+      setSelectedOrder(null);
+    } catch (err) {
+      toast.error("Failed to update order status.");
+    }
+  };
+
+  const toggleStatusFilter = (status: OrderStatus) => {
+    const newFilters = new Set(statusFilters);
+    if (newFilters.has(status)) {
+      newFilters.delete(status);
+    } else {
+      newFilters.add(status);
+    }
+    setStatusFilters(newFilters);
+  };
+
   const tabs = [
     { id: "users", label: "Users", icon: Users, count: allUsers.length },
     { id: "orders", label: "Orders", icon: ShoppingBag, count: allOrders.length },
     { id: "products", label: "Products", icon: Package, count: allProducts.length },
   ];
+
+  const orderStatuses: OrderStatus[] = ["PENDING", "ACCEPTED", "REJECTED", "DELIVERING", "DELIVERED"];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-white to-yellow-50 relative overflow-hidden">
@@ -143,8 +226,8 @@ const AdminPage = () => {
           })}
         </div>
 
-        {/* Search Bar */}
-        <div className="mb-8 flex gap-4">
+        {/* Search Bar and Actions */}
+        <div className="mb-8 flex flex-col sm:flex-row gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
@@ -155,10 +238,49 @@ const AdminPage = () => {
               className="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-yellow-200 focus:border-yellow-400 focus:ring-4 focus:ring-yellow-500/20 transition-all bg-white"
             />
           </div>
+          
+          {/* Status Filter for Orders */}
+          {activeTab === "orders" && (
+            <div className="relative" ref={filterRef}>
+              <button
+                onClick={() => setShowStatusFilter(!showStatusFilter)}
+                className="flex items-center space-x-2 bg-white border-2 border-yellow-200 text-gray-900 px-6 py-4 rounded-2xl hover:border-yellow-400 transition-all duration-300 font-bold"
+              >
+                <Check className="w-5 h-5" />
+                <span>Filter Status ({statusFilters.size})</span>
+              </button>
+              
+              {showStatusFilter && (
+                <div className="absolute top-full mt-2 right-0 bg-white border-2 border-yellow-200 rounded-2xl shadow-2xl p-4 z-50 min-w-[200px]">
+                  <p className="text-sm font-bold text-gray-700 mb-3">Order Status</p>
+                  {orderStatuses.map((status) => (
+                    <label
+                      key={status}
+                      className="flex items-center space-x-3 py-2 cursor-pointer hover:bg-yellow-50 rounded-lg px-2 transition-colors group"
+                    >
+                      <div className="relative">
+                        <input
+                          type="checkbox"
+                          checked={statusFilters.has(status)}
+                          onChange={() => toggleStatusFilter(status)}
+                          className="appearance-none w-5 h-5 border-2 border-yellow-300 rounded checked:bg-gradient-to-r checked:from-yellow-400 checked:to-yellow-500 checked:border-yellow-500 focus:ring-2 focus:ring-yellow-500/50 transition-all cursor-pointer"
+                        />
+                        {statusFilters.has(status) && (
+                          <Check className="w-4 h-4 text-gray-900 absolute top-0.5 left-0.5 pointer-events-none font-bold" strokeWidth={3} />
+                        )}
+                      </div>
+                      <span className="text-sm font-medium text-gray-700 group-hover:text-gray-900">{status}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+          
           {activeTab === "products" && (
             <button
               onClick={() => setAddProductModal(true)}
-              className="flex items-center space-x-2 bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 px-6 py-4 rounded-2xl hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 shadow-lg hover:shadow-yellow-500/50 transform hover:scale-105 font-bold"
+              className="flex items-center justify-center space-x-2 bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 px-6 py-4 rounded-2xl hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 shadow-lg hover:shadow-yellow-500/50 transform hover:scale-105 font-bold"
             >
               <Plus className="w-5 h-5" />
               <span>Add Product</span>
@@ -217,15 +339,20 @@ const AdminPage = () => {
           {activeTab === "orders" && (
             <div className="space-y-6">
               {allOrders
-                .filter((o) =>
-                  o.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                  o.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                  o.contactNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                  o._id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                  o.status?.toLowerCase().includes(searchTerm.toLowerCase())
-                )
+                .filter((o) => {
+                  // Filter by status
+                  if (!statusFilters.has(o.status as OrderStatus)) return false;
+                  
+                  // Filter by search term
+                  return (
+                    o.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    o.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    o.contactNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    o._id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    o.status?.toLowerCase().includes(searchTerm.toLowerCase())
+                  );
+                })
                 .map((order) => {
-                  // Get product details for each product in the order
                   const orderProducts = order.products.map((p) => {
                     const product = allProducts.find((prod) => prod._id === p.productId);
                     return {
@@ -239,24 +366,40 @@ const AdminPage = () => {
                       key={order._id}
                       className="bg-white border-2 border-yellow-200 rounded-2xl p-6 hover:border-yellow-400 hover:shadow-2xl hover:shadow-yellow-500/20 transition-all duration-300"
                     >
-                      <div className="flex flex-wrap items-start justify-between mb-4">
+                      <div className="flex flex-wrap items-start justify-between mb-4 gap-4">
                         <div>
                           <h3 className="font-bold text-sm md:text-2xl text-gray-900 mb-1">
                             Order #{order._id}
                           </h3>
                           <p className="text-gray-600">{order.name || "—"}</p>
                         </div>
-                        <span
-                          className={`px-2 md:px-4 py-1 text-sm md:py-2 rounded-full md:font-bold ${
-                            order.status === "PENDING"
-                              ? "bg-yellow-100 text-yellow-600"
-                              : order.status === "DELIVERED"
-                              ? "bg-green-100 text-green-600"
-                              : "bg-gray-100 text-gray-600"
-                          }`}
-                        >
-                          {order.status || "—"}
-                        </span>
+                        <div className="flex items-center gap-3">
+                          <span
+                            className={`px-2 md:px-4 py-1 text-sm md:py-2 rounded-full md:font-bold ${
+                              order.status === "PENDING"
+                                ? "bg-yellow-100 text-yellow-600"
+                                : order.status === "ACCEPTED"
+                                ? "bg-blue-100 text-blue-600"
+                                : order.status === "DELIVERING"
+                                ? "bg-purple-100 text-purple-600"
+                                : order.status === "DELIVERED"
+                                ? "bg-green-100 text-green-600"
+                                : "bg-red-100 text-red-600"
+                            }`}
+                          >
+                            {order.status || "—"}
+                          </span>
+                          <button
+                            onClick={() => {
+                              setSelectedOrder(order);
+                              setEditOrderModal(true);
+                            }}
+                            className="p-2 bg-yellow-100 hover:bg-yellow-200 rounded-full transition-colors"
+                            title="Edit Status"
+                          >
+                            <Pencil className="w-4 h-4 text-gray-900" />
+                          </button>
+                        </div>
                       </div>
                       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                         <div className="bg-yellow-50 rounded-xl p-4">
@@ -283,7 +426,6 @@ const AdminPage = () => {
                         </div>
                       </div>
                       
-                      {/* Products Section with Images */}
                       <div className="border-t-2 border-yellow-100 pt-4 mb-4">
                         <p className="text-sm text-gray-600 mb-3 font-semibold">Products Ordered:</p>
                         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -324,7 +466,6 @@ const AdminPage = () => {
                         </div>
                       </div>
 
-                      {/* Total Cost */}
                       <div className="border-t-2 border-yellow-100 pt-4 text-right">
                         <p className="text-sm text-gray-600">Total Cost</p>
                         <p className="text-3xl font-black bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
@@ -356,10 +497,20 @@ const AdminPage = () => {
                         alt={product.title}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       />
-                      <div className="absolute top-4 right-4">
+                      <div className="absolute top-4 right-4 flex gap-2">
                         <span className="bg-yellow-400 text-gray-900 text-xs font-bold px-3 py-1 rounded-full">
                           {product.category}
                         </span>
+                        <button
+                          onClick={() => {
+                            setSelectedProduct(product);
+                            setEditProductModal(true);
+                          }}
+                          className="p-2 bg-white hover:bg-yellow-100 rounded-full transition-colors shadow-lg"
+                          title="Edit Product"
+                        >
+                          <Pencil className="w-4 h-4 text-gray-900" />
+                        </button>
                       </div>
                     </div>
                     <div className="p-6 space-y-3">
@@ -380,8 +531,8 @@ const AdminPage = () => {
 
       {/* Add Product Modal */}
       {addProductModal && (
-        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl mx-auto overflow-hidden animate-fade-in">
+        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl mx-auto overflow-hidden animate-fade-in my-8">
             <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
@@ -482,6 +633,182 @@ const AdminPage = () => {
                 Create Product
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Product Modal */}
+      {editProductModal && selectedProduct && (
+        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl mx-auto max-h-[90vh] overflow-y-auto animate-fade-in">
+            <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 p-6 sticky top-0 z-10">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <Pencil className="w-8 h-8 text-gray-900" />
+                  <h2 className="text-3xl font-bold text-gray-900">Edit Product</h2>
+                </div>
+                <button
+                  onClick={() => {
+                    setEditProductModal(false);
+                    setSelectedProduct(null);
+                  }}
+                  className="text-gray-900 hover:bg-white/20 rounded-full p-2 transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+
+            <form onSubmit={handleProductUpdate} className="p-6 space-y-4">
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    Product Title <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={selectedProduct.title}
+                    onChange={(e) => setSelectedProduct({ ...selectedProduct, title: e.target.value })}
+                    className="w-full p-3 border-2 border-yellow-200 rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all"
+                    placeholder="Enter product title"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    Category <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={selectedProduct.category}
+                    onChange={(e) => setSelectedProduct({ ...selectedProduct, category: e.target.value })}
+                    className="w-full p-3 border-2 border-yellow-200 rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all"
+                    required
+                  >
+                    <option value="">Select Category</option>
+                    <option value="Tyre">Tyre</option>
+                    <option value="Lubricants">Lubricants</option>
+                    <option value="Car Accessories">Car Accessories</option>
+                    <option value="Parts">Parts</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  Description <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  value={selectedProduct.description}
+                  onChange={(e) => setSelectedProduct({ ...selectedProduct, description: e.target.value })}
+                  className="w-full p-3 border-2 border-yellow-200 rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all resize-none"
+                  rows={2}
+                  placeholder="Enter product description"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  Image URL <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={selectedProduct.imageUrl}
+                  onChange={(e) => setSelectedProduct({ ...selectedProduct, imageUrl: e.target.value })}
+                  className="w-full p-3 border-2 border-yellow-200 rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all"
+                  placeholder="https://example.com/image.jpg"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  Cost (₹) <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  value={selectedProduct.cost}
+                  onChange={(e) => setSelectedProduct({ ...selectedProduct, cost: Number(e.target.value) })}
+                  className="w-full p-3 border-2 border-yellow-200 rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all"
+                  placeholder="0"
+                  required
+                  min="0"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 py-4 rounded-xl hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 shadow-lg hover:shadow-yellow-500/50 font-bold text-lg transform hover:scale-105"
+              >
+                Update Product
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Order Status Modal */}
+      {editOrderModal && selectedOrder && (
+        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md mx-auto overflow-hidden animate-fade-in">
+            <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <Pencil className="w-8 h-8 text-gray-900" />
+                  <h2 className="text-2xl font-bold text-gray-900">Update Order Status</h2>
+                </div>
+                <button
+                  onClick={() => {
+                    setEditOrderModal(false);
+                    setSelectedOrder(null);
+                  }}
+                  className="text-gray-900 hover:bg-white/20 rounded-full p-2 transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4">
+                <p className="text-sm text-gray-600 mb-1">Order ID</p>
+                <p className="font-bold text-gray-900">{selectedOrder._id}</p>
+              </div>
+
+              <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4">
+                <p className="text-sm text-gray-600 mb-1">Customer</p>
+                <p className="font-bold text-gray-900">{selectedOrder.name}</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-3">
+                  Select New Status <span className="text-red-500">*</span>
+                </label>
+                <div className="space-y-3">
+                  {orderStatuses.map((status) => (
+                    <button
+                      key={status}
+                      onClick={() => handleOrderStatusUpdate(status)}
+                      className={`w-full p-4 rounded-xl font-bold transition-all duration-300 transform hover:scale-105 ${
+                        selectedOrder.status === status
+                          ? "bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 shadow-lg"
+                          : "bg-white border-2 border-yellow-200 text-gray-700 hover:border-yellow-400"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span>{status}</span>
+                        {selectedOrder.status === status && (
+                          <span className="bg-white text-gray-900 px-2 py-1 rounded-full text-xs">
+                            Current
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}

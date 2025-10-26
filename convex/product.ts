@@ -39,3 +39,26 @@ export const createProducts = mutation({
         return product;
     }
 })
+
+export const updateProduct = mutation({
+  args: {
+    productId: v.id("products"),
+    title: v.optional(v.string()),
+    description: v.optional(v.string()),
+    imageUrl: v.optional(v.string()),
+    cost: v.optional(v.number()),
+    category: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const product = await ctx.db.get(args.productId);
+    if (!product) throw new Error("Product not found");
+
+    await ctx.db.patch(args.productId, {
+      title: args.title ?? product.title,
+      description: args.description ?? product.description,
+      imageUrl: args.imageUrl ?? product.imageUrl,
+      cost: args.cost ?? product.cost,
+      category: args.category ?? product.category,
+    });
+  },
+});
