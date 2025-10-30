@@ -13,8 +13,7 @@ export const getProductById = query({
 export const getAllProducts = query({
     args : {},
     handler : async(ctx) => {
-        const products = await ctx.db.query("products")
-        .collect()
+        const products = await ctx.db.query("products").collect()
         return products
     },
 })
@@ -26,6 +25,8 @@ export const createProducts = mutation({
         imageUrl : v.string(),
         cost : v.number(),
         category : v.string(),
+        tyreSize : v.optional(v.string()),
+        tyreModel : v.optional(v.array(v.string()))
     },
     handler : async(ctx, args) => {
         const product = await ctx.db.insert("products", {
@@ -33,7 +34,9 @@ export const createProducts = mutation({
             description : args.description,
             imageUrl : args.imageUrl,
             cost : args.cost,
-            category : args.category
+            category : args.category,
+            tyreModel : args.tyreModel,
+            tyreSize : args.tyreSize
         })
 
         return product;
@@ -69,5 +72,32 @@ export const deleteProduct = mutation({
     },
     handler : async(ctx, args) => {
         await ctx.db.delete(args.productId)
+    }
+})
+
+export const getAllTyres = query({
+    args : {
+        model : v.optional(v.string()),
+        size : v.optional(v.string())
+    },
+    handler : async(ctx, args) => {
+        let allTyres = await ctx.db
+            .query("products")
+            .filter((q) => q.eq(q.field("category"), "Tyres"))
+            .collect()
+    
+        if(args.model != null && args.model != undefined){
+            allTyres = allTyres.filter((t) => t.tyreModel?.includes(args.model!))
+        }
+
+        if(args.size != null && args.size != undefined){
+            allTyres = allTyres.filter((t) => t.tyreSize === args.size)
+        }
+
+        const uniqueSizes = [...new Set(allTyres.map((t) => t.tyreSize).filter(Boolean))];
+
+        const uniqueModels = [...new Set(allTyres.flatMap((t) => t.tyreModel ?? []))];
+
+        return { tyres : allTyres, uniqueSizes, uniqueModels}
     }
 })

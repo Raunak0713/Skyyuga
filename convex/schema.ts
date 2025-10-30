@@ -27,6 +27,8 @@ export default defineSchema({
         imageUrl : v.string(),
         cost : v.number(),
         category : v.string(),
+        tyreSize : v.optional(v.string()),
+        tyreModel : v.optional(v.array(v.string()))
     }),
 
     orders : defineTable({

@@ -14,12 +14,10 @@ const AdminPage = () => {
   const { user } = useUser();
   const email = user?.emailAddresses[0]?.emailAddress!;
 
-  // Fetch queries
   const allUsers = useQuery(api.user.getAllUsers, { email });
   const allOrders = useQuery(api.order.getAllOrders, { email });
   const allProducts = useQuery(api.product.getAllProducts);
 
-  // Mutations
   const createProduct = useMutation(api.product.createProducts);
   const updateOrderStatus = useMutation(api.order.updateOrderStatus);
   const updateProduct = useMutation(api.product.updateProduct);
@@ -40,7 +38,10 @@ const AdminPage = () => {
     imageUrl: "",
     cost: 0,
     category: "",
+    size: "",
+    models: [] as string[],
   });
+  const [currentModel, setCurrentModel] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [isEditUploading, setIsEditUploading] = useState(false);
 
@@ -100,7 +101,18 @@ const AdminPage = () => {
   const handleProductSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await createProduct(newProduct);
+      const productData = {
+        title: newProduct.title,
+        description: newProduct.description,
+        imageUrl: newProduct.imageUrl,
+        cost: newProduct.cost,
+        category: newProduct.category,
+        ...(newProduct.category === "Tyres" && {
+          tyreSize: newProduct.size,
+          tyreModel: newProduct.models,
+        }),
+      };
+      await createProduct(productData);
       toast.success("Product created successfully!");
       setAddProductModal(false);
       setNewProduct({
@@ -109,10 +121,44 @@ const AdminPage = () => {
         imageUrl: "",
         cost: 0,
         category: "",
+        size: "",
+        models: [],
       });
+      setCurrentModel("");
     } catch (err) {
       toast.error("Failed to create product.");
     }
+  };
+
+  const addModel = () => {
+    if (currentModel.trim() && !newProduct.models.includes(currentModel.trim())) {
+      setNewProduct({ ...newProduct, models: [...newProduct.models, currentModel.trim()] });
+      setCurrentModel("");
+    }
+  };
+
+  const removeModel = (modelToRemove: string) => {
+    setNewProduct({
+      ...newProduct,
+      models: newProduct.models.filter((m) => m !== modelToRemove),
+    });
+  };
+
+  const addModelEdit = () => {
+    if (currentModel.trim() && !selectedProduct.models?.includes(currentModel.trim())) {
+      setSelectedProduct({ 
+        ...selectedProduct, 
+        models: [...(selectedProduct.models || []), currentModel.trim()] 
+      });
+      setCurrentModel("");
+    }
+  };
+
+  const removeModelEdit = (modelToRemove: string) => {
+    setSelectedProduct({
+      ...selectedProduct,
+      models: (selectedProduct.models || []).filter((m: string) => m !== modelToRemove),
+    });
   };
 
   const handleProductUpdate = async (e: React.FormEvent) => {
@@ -120,17 +166,23 @@ const AdminPage = () => {
     if (!selectedProduct) return;
     
     try {
-      await updateProduct({
+      const updateData = {
         productId: selectedProduct._id,
         title: selectedProduct.title,
         description: selectedProduct.description,
         imageUrl: selectedProduct.imageUrl,
         cost: selectedProduct.cost,
         category: selectedProduct.category,
-      });
+        ...(selectedProduct.category === "Tyres" && {
+          size: selectedProduct.size || "",
+          models: selectedProduct.models || [],
+        }),
+      };
+      await updateProduct(updateData);
       toast.success("Product updated successfully!");
       setEditProductModal(false);
       setSelectedProduct(null);
+      setCurrentModel("");
     } catch (err) {
       toast.error("Failed to update product.");
     }
@@ -606,13 +658,87 @@ const AdminPage = () => {
                     required
                   >
                     <option value="">Select Category</option>
-                    <option value="Tyre">Tyre</option>
+                    <option value="Tyres">Tyres</option>
                     <option value="Lubricants">Lubricants</option>
                     <option value="Car Accessories">Car Accessories</option>
                     <option value="Parts">Parts</option>
                   </select>
                 </div>
               </div>
+
+              {/* Tyre-specific fields - Size and Models right after category */}
+              {newProduct.category === "Tyres" && (
+                <>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                      Size <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={newProduct.size}
+                      onChange={(e) => setNewProduct({ ...newProduct, size: e.target.value })}
+                      className="w-full p-3 border-2 border-yellow-200 rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all"
+                      placeholder="e.g., 195/65R15"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                      Compatible Models <span className="text-red-500">*</span>
+                    </label>
+                    
+                    {/* Display added models as tags */}
+                    {newProduct.models.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mb-3 p-3 bg-yellow-50 border-2 border-yellow-200 rounded-xl">
+                        {newProduct.models.map((model, idx) => (
+                          <span
+                            key={idx}
+                            className="inline-flex items-center gap-2 bg-yellow-200 text-gray-900 px-3 py-1.5 rounded-lg text-sm font-medium border border-yellow-300"
+                          >
+                            {model}
+                            <button
+                              type="button"
+                              onClick={() => removeModel(model)}
+                              className="hover:bg-yellow-300 rounded-full p-0.5 transition-colors"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Input to add new model */}
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={currentModel}
+                        onChange={(e) => setCurrentModel(e.target.value)}
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            addModel();
+                          }
+                        }}
+                        className="flex-1 p-3 border-2 border-yellow-200 rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all"
+                        placeholder="e.g., MERC BENZ"
+                      />
+                      <button
+                        type="button"
+                        onClick={addModel}
+                        className="px-4 bg-yellow-400 hover:bg-yellow-500 text-gray-900 rounded-xl transition-all font-bold flex items-center gap-2"
+                      >
+                        <Plus className="w-5 h-5" />
+                        Add
+                      </button>
+                    </div>
+                    {newProduct.models.length === 0 && (
+                      <p className="text-xs text-red-500 mt-1">* At least one model is required for tyres</p>
+                    )}
+                  </div>
+                </>
+              )}
 
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">
@@ -625,6 +751,21 @@ const AdminPage = () => {
                   rows={3}
                   placeholder="Enter product description"
                   required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  Cost (₹) <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  value={newProduct.cost}
+                  onChange={(e) => setNewProduct({ ...newProduct, cost: Number(e.target.value) })}
+                  className="w-full p-3 border-2 border-yellow-200 rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all"
+                  placeholder="0"
+                  required
+                  min="0"
                 />
               </div>
 
@@ -687,24 +828,9 @@ const AdminPage = () => {
                 )}
               </div>
 
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">
-                  Cost (₹) <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="number"
-                  value={newProduct.cost}
-                  onChange={(e) => setNewProduct({ ...newProduct, cost: Number(e.target.value) })}
-                  className="w-full p-3 border-2 border-yellow-200 rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all"
-                  placeholder="0"
-                  required
-                  min="0"
-                />
-              </div>
-
               <button
                 type="submit"
-                disabled={isUploading}
+                disabled={isUploading || (newProduct.category === "Tyres" && newProduct.models.length === 0)}
                 className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 py-4 rounded-xl hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 shadow-lg hover:shadow-yellow-500/50 font-bold text-lg transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isUploading ? "Uploading Image..." : "Create Product"}
@@ -763,13 +889,87 @@ const AdminPage = () => {
                     required
                   >
                     <option value="">Select Category</option>
-                    <option value="Tyre">Tyre</option>
+                    <option value="Tyres">Tyres</option>
                     <option value="Lubricants">Lubricants</option>
                     <option value="Car Accessories">Car Accessories</option>
                     <option value="Parts">Parts</option>
                   </select>
                 </div>
               </div>
+
+              {/* Tyre-specific fields - Size and Models right after category */}
+              {selectedProduct.category === "s" && (
+                <>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                      Size <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={selectedProduct.size || ""}
+                      onChange={(e) => setSelectedProduct({ ...selectedProduct, size: e.target.value })}
+                      className="w-full p-3 border-2 border-yellow-200 rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all"
+                      placeholder="e.g., 195/65R15"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">
+                      Compatible Models <span className="text-red-500">*</span>
+                    </label>
+                    
+                    {/* Display added models as tags */}
+                    {selectedProduct.models && selectedProduct.models.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mb-3 p-3 bg-yellow-50 border-2 border-yellow-200 rounded-xl">
+                        {selectedProduct.models.map((model: string, idx: number) => (
+                          <span
+                            key={idx}
+                            className="inline-flex items-center gap-2 bg-yellow-200 text-gray-900 px-3 py-1.5 rounded-lg text-sm font-medium border border-yellow-300"
+                          >
+                            {model}
+                            <button
+                              type="button"
+                              onClick={() => removeModelEdit(model)}
+                              className="hover:bg-yellow-300 rounded-full p-0.5 transition-colors"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Input to add new model */}
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={currentModel}
+                        onChange={(e) => setCurrentModel(e.target.value)}
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            addModelEdit();
+                          }
+                        }}
+                        className="flex-1 p-3 border-2 border-yellow-200 rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all"
+                        placeholder="e.g., MERC BENZ"
+                      />
+                      <button
+                        type="button"
+                        onClick={addModelEdit}
+                        className="px-4 bg-yellow-400 hover:bg-yellow-500 text-gray-900 rounded-xl transition-all font-bold flex items-center gap-2"
+                      >
+                        <Plus className="w-5 h-5" />
+                        Add
+                      </button>
+                    </div>
+                    {(!selectedProduct.models || selectedProduct.models.length === 0) && (
+                      <p className="text-xs text-red-500 mt-1">* At least one model is required for tyres</p>
+                    )}
+                  </div>
+                </>
+              )}
 
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">
@@ -782,6 +982,21 @@ const AdminPage = () => {
                   rows={2}
                   placeholder="Enter product description"
                   required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  Cost (₹) <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  value={selectedProduct.cost}
+                  onChange={(e) => setSelectedProduct({ ...selectedProduct, cost: Number(e.target.value) })}
+                  className="w-full p-3 border-2 border-yellow-200 rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all"
+                  placeholder="0"
+                  required
+                  min="0"
                 />
               </div>
 
@@ -844,24 +1059,9 @@ const AdminPage = () => {
                 )}
               </div>
 
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">
-                  Cost (₹) <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="number"
-                  value={selectedProduct.cost}
-                  onChange={(e) => setSelectedProduct({ ...selectedProduct, cost: Number(e.target.value) })}
-                  className="w-full p-3 border-2 border-yellow-200 rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all"
-                  placeholder="0"
-                  required
-                  min="0"
-                />
-              </div>
-
               <button
                 type="submit"
-                disabled={isEditUploading}
+                disabled={isEditUploading || (selectedProduct.category === "Tyres" && (!selectedProduct.models || selectedProduct.models.length === 0))}
                 className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 py-4 rounded-xl hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 shadow-lg hover:shadow-yellow-500/50 font-bold text-lg transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isEditUploading ? "Uploading Image..." : "Update Product"}

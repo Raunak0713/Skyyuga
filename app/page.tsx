@@ -4,36 +4,29 @@ import { api } from "@/convex/_generated/api";
 import { useQuery, useMutation } from "convex/react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import {
-  Mail,
-  Send,
-  ShoppingCart,
-  Package,
-  Menu,
-  X,
-  Phone,
-} from "lucide-react";
+import { Mail, Send, ShoppingCart, Package, Menu, X, Phone} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/cartContext";
 import { UserButton, useUser } from "@clerk/nextjs";
+import { checkIsAdmin } from "@/lib/checkAdmin"; 
 import Image from "next/image";
-import { checkIsAdmin } from "@/lib/checkAdmin";
 
 export default function Home() {
   const [cartOpen, setCartOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<"UPI" | "Bank Transfer">(
-    "UPI"
-  );
+  const [paymentMethod, setPaymentMethod] = useState<"UPI" | "Bank Transfer">("UPI");
   const [referenceNumber, setReferenceNumber] = useState<number | null>();
   const [userContact, setUserContact] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
   const [phoneModalOpen, setPhoneModalOpen] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [orderProcessing, setOrderProcessing] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  
+  // Tire filter states
+  const [selectedTireSize, setSelectedTireSize] = useState<string>("");
+  const [selectedTireModel, setSelectedTireModel] = useState<string>("");
 
   const router = useRouter();
   const { user } = useUser();
@@ -41,6 +34,12 @@ export default function Home() {
   const { cartItems, addToCart, updateQuantity, clearCart, total } = useCart();
 
   const products = useQuery(api.product.getAllProducts) ?? [];
+  
+  // Fetch tire data with filters
+  const tireData = useQuery(api.product.getAllTyres, {
+    size: selectedTireSize || undefined,
+    model: selectedTireModel || undefined,
+  });
 
   const userData = useQuery(api.user.getUserByEmail, {
     email: user?.primaryEmailAddress?.emailAddress || "",
@@ -106,10 +105,26 @@ export default function Home() {
     "All",
     ...Array.from(new Set(products.map((p) => p.category))),
   ];
-  const filteredProducts =
-    selectedCategory === "All"
-      ? products
-      : products.filter((p) => p.category === selectedCategory);
+  
+  // Determine if we should show tire filters
+  const showTireFilters = selectedCategory === "All" || selectedCategory === "Tyres";
+  const anyTireFilterActive = selectedTireSize || selectedTireModel;
+  
+  // Determine which products to display
+  let filteredProducts;
+  if (showTireFilters && anyTireFilterActive && tireData) {
+    // Show only filtered tires
+    filteredProducts = tireData.tyres;
+  } else if (selectedCategory === "Tyres") {
+    // Show all tires
+    filteredProducts = products.filter((p) => p.category === "Tyres");
+  } else if (selectedCategory === "All") {
+    // Show all products
+    filteredProducts = products;
+  } else {
+    // Show products by selected category
+    filteredProducts = products.filter((p) => p.category === selectedCategory);
+  }
 
   return (
     <div className="min-h-screen bg-white text-gray-900 relative overflow-hidden">
@@ -563,7 +578,11 @@ export default function Home() {
                   .map((category) => (
                     <button
                       key={category}
-                      onClick={() => setSelectedCategory(category)}
+                      onClick={() => {
+                        setSelectedCategory(category);
+                        setSelectedTireSize("");
+                        setSelectedTireModel("");
+                      }}
                       className={`px-4 py-2 rounded-full font-semibold transition-all duration-300 whitespace-nowrap ${
                         selectedCategory === category
                           ? "bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 shadow-lg"
@@ -580,7 +599,11 @@ export default function Home() {
                   .map((category) => (
                     <button
                       key={category}
-                      onClick={() => setSelectedCategory(category)}
+                      onClick={() => {
+                        setSelectedCategory(category);
+                        setSelectedTireSize("");
+                        setSelectedTireModel("");
+                      }}
                       className={`px-4 py-2 rounded-full font-semibold transition-all duration-300 whitespace-nowrap ${
                         selectedCategory === category
                           ? "bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 shadow-lg"
@@ -599,7 +622,11 @@ export default function Home() {
                 {categories.map((category) => (
                   <button
                     key={category}
-                    onClick={() => setSelectedCategory(category)}
+                    onClick={() => {
+                      setSelectedCategory(category);
+                      setSelectedTireSize("");
+                      setSelectedTireModel("");
+                    }}
                     className={`px-4 py-2 rounded-full font-semibold transition-all duration-300 whitespace-nowrap ${
                       selectedCategory === category
                         ? "bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 shadow-lg"
@@ -612,6 +639,56 @@ export default function Home() {
               </div>
             </div>
           </div>
+
+          {/* Tire Filters */}
+          {showTireFilters && tireData && (
+            <div className="mb-8 flex flex-col sm:flex-row gap-4 justify-center items-center">
+              {/* Tire Size Filter */}
+              <div className="w-[70%] sm:w-48">
+                <select
+                  value={selectedTireSize}
+                  onChange={(e) => setSelectedTireSize(e.target.value)}
+                  className="w-full px-4 py-3 bg-yellow-50 border-2 border-yellow-200 rounded-full font-semibold text-gray-700 focus:outline-none focus:border-yellow-400 transition-all"
+                >
+                  <option value="">All Sizes</option>
+                  {tireData.uniqueSizes.map((size) => (
+                    <option key={size} value={size}>
+                      {size}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Tire Model Filter */}
+              <div className="w-[70%] sm:w-48">
+                <select
+                  value={selectedTireModel}
+                  onChange={(e) => setSelectedTireModel(e.target.value)}
+                  className="w-full px-4 py-3 bg-yellow-50 border-2 border-yellow-200 rounded-full font-semibold text-gray-700 focus:outline-none focus:border-yellow-400 transition-all"
+                >
+                  <option value="">All Models</option>
+                  {tireData.uniqueModels.map((model) => (
+                    <option key={model} value={model}>
+                      {model}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Clear Filters Button */}
+              {anyTireFilterActive && (
+                <button
+                  onClick={() => {
+                    setSelectedTireSize("");
+                    setSelectedTireModel("");
+                  }}
+                  className="w-full sm:w-auto px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-full font-semibold transition-all"
+                >
+                  Clear Filters
+                </button>
+              )}
+            </div>
+          )}
 
           <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-3">
             {filteredProducts.map((product) => (
