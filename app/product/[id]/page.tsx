@@ -184,20 +184,6 @@ const ProductPage = () => {
                             Add to Cart - ₹{(product.cost * quantity).toLocaleString()}
                         </button>
 
-                        <div className="grid grid-cols-3 gap-4 pt-6">
-                            <div className="text-center space-y-2 p-4 rounded-xl bg-yellow-50/50 border border-yellow-100">
-                                <Truck className="w-6 h-6 mx-auto text-yellow-600" />
-                                <p className="text-xs font-semibold text-gray-700">Fast Shipping</p>
-                            </div>
-                            <div className="text-center space-y-2 p-4 rounded-xl bg-yellow-50/50 border border-yellow-100">
-                                <Shield className="w-6 h-6 mx-auto text-yellow-600" />
-                                <p className="text-xs font-semibold text-gray-700">2 Year Warranty</p>
-                            </div>
-                            <div className="text-center space-y-2 p-4 rounded-xl bg-yellow-50/50 border border-yellow-100">
-                                <RotateCcw className="w-6 h-6 mx-auto text-yellow-600" />
-                                <p className="text-xs font-semibold text-gray-700">30-Day Returns</p>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
