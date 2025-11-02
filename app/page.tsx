@@ -25,8 +25,10 @@ export default function Home() {
   const [isAdmin, setIsAdmin] = useState(false);
   
   // Tire filter states
-  const [selectedTireSize, setSelectedTireSize] = useState<string>("");
+  const [selectedTireSize, setSelectedTireSize] = useState<string | undefined>("");
   const [selectedTireModel, setSelectedTireModel] = useState<string>("");
+  const [sizeDropdownOpen, setSizeDropdownOpen] = useState(false);
+  const [modelDropdownOpen, setModelDropdownOpen] = useState(false);
 
   const router = useRouter();
   const { user } = useUser();
@@ -35,11 +37,14 @@ export default function Home() {
 
   const products = useQuery(api.product.getAllProducts) ?? [];
   
-  // Fetch tire data with filters
+  // Fetch tire data with filters - always fetch to get unique values
   const tireData = useQuery(api.product.getAllTyres, {
     size: selectedTireSize || undefined,
     model: selectedTireModel || undefined,
   });
+  
+  // Fetch unfiltered tire data for filter options
+  const allTireData = useQuery(api.product.getAllTyres, {});
 
   const userData = useQuery(api.user.getUserByEmail, {
     email: user?.primaryEmailAddress?.emailAddress || "",
@@ -109,6 +114,12 @@ export default function Home() {
   // Determine if we should show tire filters
   const showTireFilters = selectedCategory === "All" || selectedCategory === "Tyres";
   const anyTireFilterActive = selectedTireSize || selectedTireModel;
+  
+  // Use allTireData for filter options to prevent disappearing
+  const filterOptions = allTireData || { uniqueSizes: [], uniqueModels: [] };
+  
+  // Check if we're loading filtered tire data
+  const isLoadingFilteredTires = showTireFilters && anyTireFilterActive && !tireData;
   
   // Determine which products to display
   let filteredProducts;
@@ -369,61 +380,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* About Us Section */}
-        <section className="max-w-7xl mx-auto px-6 py-12 mb-12">
-          <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-3xl border-2 border-yellow-200 p-8 md:p-12 shadow-xl">
-            <div className="grid md:grid-cols-3 gap-8">
-              {/* About Us */}
-              <div className="space-y-4">
-                <h3 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
-                  About Us
-                </h3>
-                <p className="text-gray-700 leading-relaxed text-sm md:text-base">
-                  We are serving the best products in Tyres and Lubricants since
-                  1964 in Jamnagar District. This is a noble profession from our
-                  ancestors' time, and we have deep and years of experience in
-                  this business.
-                </p>
-              </div>
-
-              {/* Our Vision */}
-              <div className="space-y-4">
-                <h3 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
-                  Our Vision
-                </h3>
-                <p className="text-gray-700 leading-relaxed text-sm md:text-base">
-                  We are trying to spread our business and experience across
-                  India and abroad, bringing our legacy of quality and trust to
-                  more customers.
-                </p>
-              </div>
-
-              {/* Our Mission */}
-              <div className="space-y-4">
-                <h3 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
-                  Our Mission
-                </h3>
-                <p className="text-gray-700 leading-relaxed text-sm md:text-base">
-                  Every customer is to be delivered door-to-door with standard
-                  and original branded company fresh goods.
-                </p>
-              </div>
-            </div>
-
-            {/* Legacy Badge */}
-            <div className="mt-8 text-center">
-              <div className="inline-block bg-white border-2 border-yellow-300 rounded-full px-6 py-3 shadow-lg">
-                <p className="text-xl md:text-2xl font-black text-gray-900">
-                  <span className="bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
-                    Serving Since 1964
-                  </span>{" "}
-                  • 60+ Years of Excellence
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
+        {/* Brand Marquee Section */}
         <section className="py-12 overflow-hidden relative">
           {/* Layer 1 - scroll left */}
           <div className="relative w-full mb-8">
@@ -640,39 +597,105 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Tire Filters */}
-          {showTireFilters && tireData && (
+          {/* Tire Filters - Custom Styled Dropdowns */}
+          {showTireFilters && (
             <div className="mb-8 flex flex-col sm:flex-row gap-4 justify-center items-center">
               {/* Tire Size Filter */}
-              <div className="w-[70%] sm:w-48">
-                <select
-                  value={selectedTireSize}
-                  onChange={(e) => setSelectedTireSize(e.target.value)}
-                  className="w-full px-4 py-3 bg-yellow-50 border-2 border-yellow-200 rounded-full font-semibold text-gray-700 focus:outline-none focus:border-yellow-400 transition-all"
+              <div className="w-[70%] sm:w-64 relative">
+                <button
+                  onClick={() => {
+                    setSizeDropdownOpen(!sizeDropdownOpen);
+                    setModelDropdownOpen(false);
+                  }}
+                  className="w-full px-6 py-3 bg-gradient-to-r from-yellow-50 to-yellow-100 border-2 border-yellow-300 rounded-full font-semibold text-gray-900 focus:outline-none focus:border-yellow-500 focus:ring-2 focus:ring-yellow-400 transition-all cursor-pointer hover:border-yellow-400 shadow-md flex items-center justify-between"
                 >
-                  <option value="">All Sizes</option>
-                  {tireData.uniqueSizes.map((size) => (
-                    <option key={size} value={size}>
-                      {size}
-                    </option>
-                  ))}
-                </select>
+                  <span>{selectedTireSize || "All Sizes"}</span>
+                  <svg
+                    className={`w-5 h-5 transition-transform ${sizeDropdownOpen ? 'rotate-180' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                
+                {sizeDropdownOpen && (
+                  <div className="absolute z-50 w-full mt-2 bg-white border-2 border-yellow-300 rounded-2xl shadow-2xl max-h-60 overflow-y-auto">
+                    <div
+                      onClick={() => {
+                        setSelectedTireSize("");
+                        setSizeDropdownOpen(false);
+                      }}
+                      className="px-6 py-3 hover:bg-yellow-50 cursor-pointer font-semibold text-gray-900 transition-colors border-b border-yellow-100"
+                    >
+                      All Sizes
+                    </div>
+                    {filterOptions.uniqueSizes.map((size) => (
+                      <div
+                        key={size}
+                        onClick={() => {
+                          setSelectedTireSize(size);
+                          setSizeDropdownOpen(false);
+                        }}
+                        className={`px-6 py-3 hover:bg-yellow-50 cursor-pointer font-semibold transition-colors border-b border-yellow-100 last:border-b-0 ${
+                          selectedTireSize === size ? 'bg-yellow-100 text-yellow-700' : 'text-gray-900'
+                        }`}
+                      >
+                        {size}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Tire Model Filter */}
-              <div className="w-[70%] sm:w-48">
-                <select
-                  value={selectedTireModel}
-                  onChange={(e) => setSelectedTireModel(e.target.value)}
-                  className="w-full px-4 py-3 bg-yellow-50 border-2 border-yellow-200 rounded-full font-semibold text-gray-700 focus:outline-none focus:border-yellow-400 transition-all"
+              <div className="w-[70%] sm:w-64 relative">
+                <button
+                  onClick={() => {
+                    setModelDropdownOpen(!modelDropdownOpen);
+                    setSizeDropdownOpen(false);
+                  }}
+                  className="w-full px-6 py-3 bg-gradient-to-r from-yellow-50 to-yellow-100 border-2 border-yellow-300 rounded-full font-semibold text-gray-900 focus:outline-none focus:border-yellow-500 focus:ring-2 focus:ring-yellow-400 transition-all cursor-pointer hover:border-yellow-400 shadow-md flex items-center justify-between"
                 >
-                  <option value="">All Models</option>
-                  {tireData.uniqueModels.map((model) => (
-                    <option key={model} value={model}>
-                      {model}
-                    </option>
-                  ))}
-                </select>
+                  <span>{selectedTireModel || "All Models"}</span>
+                  <svg
+                    className={`w-5 h-5 transition-transform ${modelDropdownOpen ? 'rotate-180' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                
+                {modelDropdownOpen && (
+                  <div className="absolute z-50 w-full mt-2 bg-white border-2 border-yellow-300 rounded-2xl shadow-2xl max-h-60 overflow-y-auto">
+                    <div
+                      onClick={() => {
+                        setSelectedTireModel("");
+                        setModelDropdownOpen(false);
+                      }}
+                      className="px-6 py-3 hover:bg-yellow-50 cursor-pointer font-semibold text-gray-900 transition-colors border-b border-yellow-100"
+                    >
+                      All Models
+                    </div>
+                    {filterOptions.uniqueModels.map((model) => (
+                      <div
+                        key={model}
+                        onClick={() => {
+                          setSelectedTireModel(model);
+                          setModelDropdownOpen(false);
+                        }}
+                        className={`px-6 py-3 hover:bg-yellow-50 cursor-pointer font-semibold transition-colors border-b border-yellow-100 last:border-b-0 ${
+                          selectedTireModel === model ? 'bg-yellow-100 text-yellow-700' : 'text-gray-900'
+                        }`}
+                      >
+                        {model}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Clear Filters Button */}
@@ -681,8 +704,10 @@ export default function Home() {
                   onClick={() => {
                     setSelectedTireSize("");
                     setSelectedTireModel("");
+                    setSizeDropdownOpen(false);
+                    setModelDropdownOpen(false);
                   }}
-                  className="w-full sm:w-auto px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-full font-semibold transition-all"
+                  className="w-[70%] sm:w-auto px-6 py-3 bg-yellow-100 text-black rounded-full font-semibold transition-all shadow-lg transform hover:scale-105"
                 >
                   Clear Filters
                 </button>
@@ -691,47 +716,127 @@ export default function Home() {
           )}
 
           <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-3">
-            {filteredProducts.map((product) => (
-              <div
-                key={product._id}
-                onClick={() => router.push(`/product/${product._id}`)}
-                className="group relative bg-white border-2 border-gray-200 rounded-2xl overflow-hidden hover:border-yellow-400 transition-all duration-500 hover:shadow-2xl hover:shadow-yellow-500/20 transform hover:scale-105"
-              >
-                <div className="relative overflow-hidden h-64">
-                  <img
-                    src={product.imageUrl}
-                    alt={product.title}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent opacity-60"></div>
-                  <div className="absolute top-4 right-4">
-                    <span className="bg-yellow-400 text-gray-900 text-xs font-bold px-3 py-1 rounded-full">
-                      {product.category}
-                    </span>
+            {isLoadingFilteredTires ? (
+              // Skeleton Loading Cards
+              Array.from({ length: 6 }).map((_, index) => (
+                <div
+                  key={`skeleton-${index}`}
+                  className="bg-white border-2 border-gray-200 rounded-2xl overflow-hidden animate-pulse"
+                >
+                  <div className="relative h-64 bg-gray-200"></div>
+                  <div className="p-6 space-y-4">
+                    <div className="h-8 bg-gray-200 rounded w-3/4"></div>
+                    <div className="flex items-center justify-between">
+                      <div className="h-10 bg-gray-200 rounded w-1/3"></div>
+                      <div className="h-12 bg-gray-200 rounded-full w-32"></div>
+                    </div>
                   </div>
                 </div>
-                <div className="p-6 space-y-4">
-                  <h4 className="font-bold text-2xl text-gray-900">
-                    {product.title}
-                  </h4>
-                  <div className="flex items-center justify-between">
-                    <p className="text-3xl font-black bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
-                      ₹ {product.cost}
-                    </p>
-                    <button
-                      className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 px-6 py-3 rounded-full hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 shadow-lg hover:shadow-yellow-500/50 font-bold transform hover:scale-110"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        addToCart(product);
-                        toast.success("Added to cart!");
-                      }}
-                    >
-                      Add to Cart
-                    </button>
+              ))
+            ) : (
+              // Actual Products
+              filteredProducts.map((product) => (
+                <div
+                  key={product._id}
+                  onClick={() => router.push(`/product/${product._id}`)}
+                  className="group relative bg-white border-2 border-gray-200 rounded-2xl overflow-hidden hover:border-yellow-400 transition-all duration-500 hover:shadow-2xl hover:shadow-yellow-500/20 transform hover:scale-105"
+                >
+                  <div className="relative overflow-hidden h-64">
+                    <img
+                      src={product.imageUrl}
+                      alt={product.title}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent opacity-60"></div>
+                    <div className="absolute top-4 right-4 flex flex-col gap-2 items-center">
+                      <span className="bg-yellow-400 text-gray-900 text-xs font-bold px-3 py-1 rounded-full">
+                        {product.category}
+                      </span>
+                      {product.category === "Tyres" && product.tyreSize && (
+                        <span className="bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">
+                          {product.tyreSize}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="p-6 space-y-4">
+                    <h4 className="font-bold text-2xl text-gray-900">
+                      {product.title}
+                    </h4>
+                    <div className="flex items-center justify-between">
+                      <p className="text-3xl font-black bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
+                        ₹ {product.cost}
+                      </p>
+                      <button
+                        className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 px-6 py-3 rounded-full hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 shadow-lg hover:shadow-yellow-500/50 font-bold transform hover:scale-110"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          addToCart(product);
+                          toast.success("Added to cart!");
+                        }}
+                      >
+                        Add to Cart
+                      </button>
+                    </div>
                   </div>
                 </div>
+              ))
+            )}
+          </div>
+        </section>
+
+        {/* About Us Section */}
+        <section className="max-w-7xl mx-auto px-6 py-12 mb-12">
+          <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-3xl border-2 border-yellow-200 p-8 md:p-12 shadow-xl">
+            <div className="grid md:grid-cols-3 gap-8">
+              {/* About Us */}
+              <div className="space-y-4">
+                <h3 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
+                  About Us
+                </h3>
+                <p className="text-gray-700 leading-relaxed text-sm md:text-base">
+                  We are serving the best products in Tyres and Lubricants since
+                  1964 in Jamnagar District. This is a noble profession from our
+                  ancestors' time, and we have deep and years of experience in
+                  this business.
+                </p>
               </div>
-            ))}
+
+              {/* Our Vision */}
+              <div className="space-y-4">
+                <h3 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
+                  Our Vision
+                </h3>
+                <p className="text-gray-700 leading-relaxed text-sm md:text-base">
+                  We are trying to spread our business and experience across
+                  India and abroad, bringing our legacy of quality and trust to
+                  more customers.
+                </p>
+              </div>
+
+              {/* Our Mission */}
+              <div className="space-y-4">
+                <h3 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
+                  Our Mission
+                </h3>
+                <p className="text-gray-700 leading-relaxed text-sm md:text-base">
+                  Every customer is to be delivered door-to-door with standard
+                  and original branded company fresh goods.
+                </p>
+              </div>
+            </div>
+
+            {/* Legacy Badge */}
+            <div className="mt-8 text-center">
+              <div className="inline-block bg-white border-2 border-yellow-300 rounded-full px-6 py-3 shadow-lg">
+                <p className="text-xl md:text-2xl font-black text-gray-900">
+                  <span className="bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
+                    Serving Since 1964
+                  </span>{" "}
+                  • 60+ Years of Excellence
+                </p>
+              </div>
+            </div>
           </div>
         </section>
       </main>

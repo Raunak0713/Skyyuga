@@ -42,17 +42,16 @@ const AdminPage = () => {
     models: [] as string[],
   });
   const [currentModel, setCurrentModel] = useState("");
+  const [currentEditModel, setCurrentEditModel] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [isEditUploading, setIsEditUploading] = useState(false);
 
-  // Order status filter
   const [statusFilters, setStatusFilters] = useState<Set<OrderStatus>>(
     new Set(["PENDING", "ACCEPTED", "REJECTED", "DELIVERING", "DELIVERED"])
   );
   const [showStatusFilter, setShowStatusFilter] = useState(false);
   const filterRef = useRef<HTMLDivElement>(null);
 
-  // Close filter dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
@@ -145,19 +144,19 @@ const AdminPage = () => {
   };
 
   const addModelEdit = () => {
-    if (currentModel.trim() && !selectedProduct.models?.includes(currentModel.trim())) {
+    if (currentEditModel.trim() && !selectedProduct.tyreModel?.includes(currentEditModel.trim())) {
       setSelectedProduct({ 
         ...selectedProduct, 
-        models: [...(selectedProduct.models || []), currentModel.trim()] 
+        tyreModel: [...(selectedProduct.tyreModel || []), currentEditModel.trim()] 
       });
-      setCurrentModel("");
+      setCurrentEditModel("");
     }
   };
 
   const removeModelEdit = (modelToRemove: string) => {
     setSelectedProduct({
       ...selectedProduct,
-      models: (selectedProduct.models || []).filter((m: string) => m !== modelToRemove),
+      tyreModel: (selectedProduct.tyreModel || []).filter((m: string) => m !== modelToRemove),
     });
   };
 
@@ -174,15 +173,15 @@ const AdminPage = () => {
         cost: selectedProduct.cost,
         category: selectedProduct.category,
         ...(selectedProduct.category === "Tyres" && {
-          size: selectedProduct.size || "",
-          models: selectedProduct.models || [],
+          size: selectedProduct.tyreSize || "",
+          models: selectedProduct.tyreModel || [],
         }),
       };
       await updateProduct(updateData);
       toast.success("Product updated successfully!");
       setEditProductModal(false);
       setSelectedProduct(null);
-      setCurrentModel("");
+      setCurrentEditModel("");
     } catch (err) {
       toast.error("Failed to update product.");
     }
@@ -315,7 +314,6 @@ const AdminPage = () => {
             />
           </div>
           
-          {/* Status Filter for Orders */}
           {activeTab === "orders" && (
             <div className="relative" ref={filterRef}>
               <button
@@ -416,10 +414,8 @@ const AdminPage = () => {
             <div className="space-y-6">
               {allOrders
                 .filter((o) => {
-                  // Filter by status
                   if (!statusFilters.has(o.status as OrderStatus)) return false;
                   
-                  // Filter by search term
                   return (
                     o.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                     o.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -599,6 +595,14 @@ const AdminPage = () => {
                     <div className="p-6 space-y-3">
                       <h4 className="font-bold text-xl text-gray-900">{product.title}</h4>
                       <p className="text-gray-600 text-sm line-clamp-2">{product.description}</p>
+                      {product.category === "Tyres" && product.tyreSize && (
+                        <div className="pt-2 border-t border-yellow-100">
+                          <p className="text-xs text-gray-600">Size: <span className="font-semibold text-gray-900">{product.tyreSize}</span></p>
+                          {product.tyreModel && product.tyreModel.length > 0 && (
+                            <p className="text-xs text-gray-600 mt-1">Models: <span className="font-semibold text-gray-900">{product.tyreModel.join(", ")}</span></p>
+                          )}
+                        </div>
+                      )}
                       <div className="pt-3 border-t border-yellow-100">
                         <p className="text-3xl font-black bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
                           ₹{product.cost}
@@ -614,25 +618,25 @@ const AdminPage = () => {
 
       {/* Add Product Modal */}
       {addProductModal && (
-        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl mx-auto overflow-hidden animate-fade-in my-8">
-            <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 p-6">
+        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col animate-fade-in">
+            <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 p-4 md:p-6 flex-shrink-0">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <Plus className="w-8 h-8 text-gray-900" />
-                  <h2 className="text-3xl font-bold text-gray-900">Add New Product</h2>
+                  <Plus className="w-6 h-6 md:w-8 md:h-8 text-gray-900" />
+                  <h2 className="text-xl md:text-3xl font-bold text-gray-900">Add New Product</h2>
                 </div>
                 <button
                   onClick={() => setAddProductModal(false)}
                   className="text-gray-900 hover:bg-white/20 rounded-full p-2 transition-colors"
                 >
-                  <X className="w-6 h-6" />
+                  <X className="w-5 h-5 md:w-6 md:h-6" />
                 </button>
               </div>
             </div>
 
-            <form onSubmit={handleProductSubmit} className="p-6 space-y-6">
-              <div className="grid md:grid-cols-2 gap-6">
+            <form onSubmit={handleProductSubmit} className="p-4 md:p-6 space-y-4 overflow-y-auto flex-1">
+              <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">
                     Product Title <span className="text-red-500">*</span>
@@ -641,7 +645,7 @@ const AdminPage = () => {
                     type="text"
                     value={newProduct.title}
                     onChange={(e) => setNewProduct({ ...newProduct, title: e.target.value })}
-                    className="w-full p-3 border-2 border-yellow-200 rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all"
+                    className="w-full p-2.5 border-2 border-yellow-200 rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all text-sm"
                     placeholder="Enter product title"
                     required
                   />
@@ -654,7 +658,7 @@ const AdminPage = () => {
                   <select
                     value={newProduct.category}
                     onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
-                    className="w-full p-3 border-2 border-yellow-200 rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all"
+                    className="w-full p-2.5 border-2 border-yellow-200 rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all text-sm"
                     required
                   >
                     <option value="">Select Category</option>
@@ -666,9 +670,8 @@ const AdminPage = () => {
                 </div>
               </div>
 
-              {/* Tyre-specific fields - Size and Models right after category */}
               {newProduct.category === "Tyres" && (
-                <>
+                <div className="grid md:grid-cols-2 gap-4 bg-yellow-50 p-4 rounded-xl border-2 border-yellow-200">
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2">
                       Size <span className="text-red-500">*</span>
@@ -677,7 +680,7 @@ const AdminPage = () => {
                       type="text"
                       value={newProduct.size}
                       onChange={(e) => setNewProduct({ ...newProduct, size: e.target.value })}
-                      className="w-full p-3 border-2 border-yellow-200 rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all"
+                      className="w-full p-2.5 border-2 border-yellow-200 rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all text-sm"
                       placeholder="e.g., 195/65R15"
                       required
                     />
@@ -688,13 +691,12 @@ const AdminPage = () => {
                       Compatible Models <span className="text-red-500">*</span>
                     </label>
                     
-                    {/* Display added models as tags */}
                     {newProduct.models.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mb-3 p-3 bg-yellow-50 border-2 border-yellow-200 rounded-xl">
+                      <div className="flex flex-wrap gap-1.5 mb-2 p-2 bg-white border-2 border-yellow-200 rounded-xl max-h-20 overflow-y-auto">
                         {newProduct.models.map((model, idx) => (
                           <span
                             key={idx}
-                            className="inline-flex items-center gap-2 bg-yellow-200 text-gray-900 px-3 py-1.5 rounded-lg text-sm font-medium border border-yellow-300"
+                            className="inline-flex items-center gap-1.5 bg-yellow-200 text-gray-900 px-2 py-1 rounded-lg text-xs font-medium border border-yellow-300"
                           >
                             {model}
                             <button
@@ -702,14 +704,13 @@ const AdminPage = () => {
                               onClick={() => removeModel(model)}
                               className="hover:bg-yellow-300 rounded-full p-0.5 transition-colors"
                             >
-                              <X className="w-3.5 h-3.5" />
+                              <X className="w-3 h-3" />
                             </button>
                           </span>
                         ))}
                       </div>
                     )}
 
-                    {/* Input to add new model */}
                     <div className="flex gap-2">
                       <input
                         type="text"
@@ -721,23 +722,23 @@ const AdminPage = () => {
                             addModel();
                           }
                         }}
-                        className="flex-1 p-3 border-2 border-yellow-200 rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all"
+                        className="flex-1 p-2.5 border-2 border-yellow-200 rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all text-sm"
                         placeholder="e.g., MERC BENZ"
                       />
                       <button
                         type="button"
                         onClick={addModel}
-                        className="px-4 bg-yellow-400 hover:bg-yellow-500 text-gray-900 rounded-xl transition-all font-bold flex items-center gap-2"
+                        className="px-3 bg-yellow-400 hover:bg-yellow-500 text-gray-900 rounded-xl transition-all font-bold flex items-center gap-1 text-sm"
                       >
-                        <Plus className="w-5 h-5" />
+                        <Plus className="w-4 h-4" />
                         Add
                       </button>
                     </div>
                     {newProduct.models.length === 0 && (
-                      <p className="text-xs text-red-500 mt-1">* At least one model is required for tyres</p>
+                      <p className="text-xs text-red-500 mt-1">* At least one model required</p>
                     )}
                   </div>
-                </>
+                </div>
               )}
 
               <div>
@@ -747,91 +748,89 @@ const AdminPage = () => {
                 <textarea
                   value={newProduct.description}
                   onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
-                  className="w-full p-3 border-2 border-yellow-200 rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all resize-none"
-                  rows={3}
+                  className="w-full p-2.5 border-2 border-yellow-200 rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all resize-none text-sm"
+                  rows={2}
                   placeholder="Enter product description"
                   required
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">
-                  Cost (₹) <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="number"
-                  value={newProduct.cost}
-                  onChange={(e) => setNewProduct({ ...newProduct, cost: Number(e.target.value) })}
-                  className="w-full p-3 border-2 border-yellow-200 rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all"
-                  placeholder="0"
-                  required
-                  min="0"
-                />
-              </div>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    Cost (₹) <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    value={newProduct.cost}
+                    onChange={(e) => setNewProduct({ ...newProduct, cost: Number(e.target.value) })}
+                    className="w-full p-2.5 border-2 border-yellow-200 rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all text-sm"
+                    placeholder="0"
+                    required
+                    min="0"
+                  />
+                </div>
 
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">
-                  Product Image <span className="text-red-500">*</span>
-                </label>
-                
-                {!newProduct.imageUrl ? (
-                  <div className="w-full">
-                    <div className="w-full flex justify-center items-center border-2 border-dashed border-yellow-300 rounded-xl p-8 bg-yellow-50 hover:bg-yellow-100 transition-colors">
-                      <div className="text-center">
-                        <Upload className="w-12 h-12 text-yellow-500 mx-auto mb-3" />
-                        <UploadButton
-                          endpoint="imageUploader"
-                          appearance={{
-                            button: "bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 font-bold px-8 text-sm py-3 rounded-xl hover:from-yellow-500 hover:to-yellow-600 transition-all ut-ready:bg-gradient-to-r ut-ready:from-yellow-400 ut-ready:to-yellow-500 ut-uploading:cursor-not-allowed ut-uploading:opacity-50",
-                            container: "w-full flex flex-col items-center justify-center gap-2",
-                            allowedContent: "text-gray-600 text-sm"
-                          }}
-                          onClientUploadComplete={(res) => {
-                            if (res && res[0]) {
-                              setNewProduct({ ...newProduct, imageUrl: res[0].url });
-                              toast.success("Image uploaded successfully!");
-                            }
-                            setIsUploading(false);
-                          }}
-                          onUploadBegin={() => {
-                            setIsUploading(true);
-                          }}
-                          onUploadError={(error) => {
-                            toast.error("Upload failed!");
-                            setIsUploading(false);
-                          }}
-                        />
-                        {isUploading && (
-                          <p className="text-sm text-yellow-600 font-medium mt-3">Uploading...</p>
-                        )}
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    Product Image <span className="text-red-500">*</span>
+                  </label>
+                  
+                  {!newProduct.imageUrl ? (
+                    <div className="w-full">
+                      <div className="w-full flex justify-center items-center border-2 border-dashed border-yellow-300 rounded-xl p-3 bg-yellow-50 hover:bg-yellow-100 transition-colors">
+                        <div className="text-center">
+                          <UploadButton
+                            endpoint="imageUploader"
+                            appearance={{
+                              button: "bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 font-bold px-4 text-xs py-2 rounded-xl hover:from-yellow-500 hover:to-yellow-600 transition-all ut-ready:bg-gradient-to-r ut-ready:from-yellow-400 ut-ready:to-yellow-500 ut-uploading:cursor-not-allowed ut-uploading:opacity-50",
+                              container: "w-full flex flex-col items-center justify-center gap-1",
+                              allowedContent: "text-gray-600 text-xs"
+                            }}
+                            onClientUploadComplete={(res) => {
+                              if (res && res[0]) {
+                                setNewProduct({ ...newProduct, imageUrl: res[0].url });
+                                toast.success("Image uploaded successfully!");
+                              }
+                              setIsUploading(false);
+                            }}
+                            onUploadBegin={() => {
+                              setIsUploading(true);
+                            }}
+                            onUploadError={(error) => {
+                              toast.error("Upload failed!");
+                              setIsUploading(false);
+                            }}
+                          />
+                          {isUploading && (
+                            <p className="text-xs text-yellow-600 font-medium mt-2">Uploading...</p>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ) : (
-                  <div className="relative">
-                    <img
-                      src={newProduct.imageUrl}
-                      alt="Preview"
-                      className="w-full h-64 object-cover rounded-xl border-2 border-yellow-200"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setNewProduct({ ...newProduct, imageUrl: "" })}
-                      className="absolute top-2 right-2 p-2 bg-red-500 hover:bg-red-600 text-white rounded-full transition-colors shadow-lg"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
-                    <div className="absolute bottom-2 left-2 right-2 bg-black/70 text-white px-3 py-2 rounded-lg text-sm">
-                      Image uploaded successfully
+                  ) : (
+                    <div className="relative h-20 w-full">
+                      <img
+                        src={newProduct.imageUrl}
+                        alt="Preview"
+                        className="w-full h-full object-cover rounded-xl border-2 border-yellow-200"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setNewProduct({ ...newProduct, imageUrl: "" })}
+                        className="absolute top-1 right-1 p-1 bg-red-500 hover:bg-red-600 text-white rounded-full transition-colors shadow-lg"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
 
               <button
                 type="submit"
                 disabled={isUploading || (newProduct.category === "Tyres" && newProduct.models.length === 0)}
-                className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 py-4 rounded-xl hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 shadow-lg hover:shadow-yellow-500/50 font-bold text-lg transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 py-3 rounded-xl hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 shadow-lg hover:shadow-yellow-500/50 font-bold text-base transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isUploading ? "Uploading Image..." : "Create Product"}
               </button>
@@ -843,26 +842,27 @@ const AdminPage = () => {
       {/* Edit Product Modal */}
       {editProductModal && selectedProduct && (
         <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl mx-auto max-h-[90vh] overflow-y-auto animate-fade-in">
-            <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 p-6 sticky top-0 z-10">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col animate-fade-in">
+            <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 p-4 md:p-6 flex-shrink-0">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <Pencil className="w-8 h-8 text-gray-900" />
-                  <h2 className="text-3xl font-bold text-gray-900">Edit Product</h2>
+                  <Pencil className="w-6 h-6 md:w-8 md:h-8 text-gray-900" />
+                  <h2 className="text-xl md:text-3xl font-bold text-gray-900">Edit Product</h2>
                 </div>
                 <button
                   onClick={() => {
                     setEditProductModal(false);
                     setSelectedProduct(null);
+                    setCurrentEditModel("");
                   }}
                   className="text-gray-900 hover:bg-white/20 rounded-full p-2 transition-colors"
                 >
-                  <X className="w-6 h-6" />
+                  <X className="w-5 h-5 md:w-6 md:h-6" />
                 </button>
               </div>
             </div>
 
-            <form onSubmit={handleProductUpdate} className="p-6 space-y-4">
+            <form onSubmit={handleProductUpdate} className="p-4 md:p-6 space-y-4 overflow-y-auto flex-1">
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">
@@ -872,7 +872,7 @@ const AdminPage = () => {
                     type="text"
                     value={selectedProduct.title}
                     onChange={(e) => setSelectedProduct({ ...selectedProduct, title: e.target.value })}
-                    className="w-full p-3 border-2 border-yellow-200 rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all"
+                    className="w-full p-2.5 border-2 border-yellow-200 rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all text-sm"
                     placeholder="Enter product title"
                     required
                   />
@@ -885,7 +885,7 @@ const AdminPage = () => {
                   <select
                     value={selectedProduct.category}
                     onChange={(e) => setSelectedProduct({ ...selectedProduct, category: e.target.value })}
-                    className="w-full p-3 border-2 border-yellow-200 rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all"
+                    className="w-full p-2.5 border-2 border-yellow-200 rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all text-sm"
                     required
                   >
                     <option value="">Select Category</option>
@@ -897,18 +897,17 @@ const AdminPage = () => {
                 </div>
               </div>
 
-              {/* Tyre-specific fields - Size and Models right after category */}
-              {selectedProduct.category === "s" && (
-                <>
+              {selectedProduct.category === "Tyres" && (
+                <div className="grid md:grid-cols-2 gap-4 bg-yellow-50 p-4 rounded-xl border-2 border-yellow-200">
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2">
                       Size <span className="text-red-500">*</span>
                     </label>
                     <input
                       type="text"
-                      value={selectedProduct.size || ""}
-                      onChange={(e) => setSelectedProduct({ ...selectedProduct, size: e.target.value })}
-                      className="w-full p-3 border-2 border-yellow-200 rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all"
+                      value={selectedProduct.tyreSize || ""}
+                      onChange={(e) => setSelectedProduct({ ...selectedProduct, tyreSize: e.target.value })}
+                      className="w-full p-2.5 border-2 border-yellow-200 rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all text-sm"
                       placeholder="e.g., 195/65R15"
                       required
                     />
@@ -919,13 +918,12 @@ const AdminPage = () => {
                       Compatible Models <span className="text-red-500">*</span>
                     </label>
                     
-                    {/* Display added models as tags */}
-                    {selectedProduct.models && selectedProduct.models.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mb-3 p-3 bg-yellow-50 border-2 border-yellow-200 rounded-xl">
-                        {selectedProduct.models.map((model: string, idx: number) => (
+                    {selectedProduct.tyreModel && selectedProduct.tyreModel.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mb-2 p-2 bg-white border-2 border-yellow-200 rounded-xl max-h-20 overflow-y-auto">
+                        {selectedProduct.tyreModel.map((model: string, idx: number) => (
                           <span
                             key={idx}
-                            className="inline-flex items-center gap-2 bg-yellow-200 text-gray-900 px-3 py-1.5 rounded-lg text-sm font-medium border border-yellow-300"
+                            className="inline-flex items-center gap-1.5 bg-yellow-200 text-gray-900 px-2 py-1 rounded-lg text-xs font-medium border border-yellow-300"
                           >
                             {model}
                             <button
@@ -933,42 +931,41 @@ const AdminPage = () => {
                               onClick={() => removeModelEdit(model)}
                               className="hover:bg-yellow-300 rounded-full p-0.5 transition-colors"
                             >
-                              <X className="w-3.5 h-3.5" />
+                              <X className="w-3 h-3" />
                             </button>
                           </span>
                         ))}
                       </div>
                     )}
 
-                    {/* Input to add new model */}
                     <div className="flex gap-2">
                       <input
                         type="text"
-                        value={currentModel}
-                        onChange={(e) => setCurrentModel(e.target.value)}
+                        value={currentEditModel}
+                        onChange={(e) => setCurrentEditModel(e.target.value)}
                         onKeyPress={(e) => {
                           if (e.key === 'Enter') {
                             e.preventDefault();
                             addModelEdit();
                           }
                         }}
-                        className="flex-1 p-3 border-2 border-yellow-200 rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all"
+                        className="flex-1 p-2.5 border-2 border-yellow-200 rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all text-sm"
                         placeholder="e.g., MERC BENZ"
                       />
                       <button
                         type="button"
                         onClick={addModelEdit}
-                        className="px-4 bg-yellow-400 hover:bg-yellow-500 text-gray-900 rounded-xl transition-all font-bold flex items-center gap-2"
+                        className="px-3 bg-yellow-400 hover:bg-yellow-500 text-gray-900 rounded-xl transition-all font-bold flex items-center gap-1 text-sm"
                       >
-                        <Plus className="w-5 h-5" />
+                        <Plus className="w-4 h-4" />
                         Add
                       </button>
                     </div>
-                    {(!selectedProduct.models || selectedProduct.models.length === 0) && (
-                      <p className="text-xs text-red-500 mt-1">* At least one model is required for tyres</p>
+                    {(!selectedProduct.tyreModel || selectedProduct.tyreModel.length === 0) && (
+                      <p className="text-xs text-red-500 mt-1">* At least one model required</p>
                     )}
                   </div>
-                </>
+                </div>
               )}
 
               <div>
@@ -978,91 +975,89 @@ const AdminPage = () => {
                 <textarea
                   value={selectedProduct.description}
                   onChange={(e) => setSelectedProduct({ ...selectedProduct, description: e.target.value })}
-                  className="w-full p-3 border-2 border-yellow-200 rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all resize-none"
+                  className="w-full p-2.5 border-2 border-yellow-200 rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all resize-none text-sm"
                   rows={2}
                   placeholder="Enter product description"
                   required
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">
-                  Cost (₹) <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="number"
-                  value={selectedProduct.cost}
-                  onChange={(e) => setSelectedProduct({ ...selectedProduct, cost: Number(e.target.value) })}
-                  className="w-full p-3 border-2 border-yellow-200 rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all"
-                  placeholder="0"
-                  required
-                  min="0"
-                />
-              </div>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    Cost (₹) <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    value={selectedProduct.cost}
+                    onChange={(e) => setSelectedProduct({ ...selectedProduct, cost: Number(e.target.value) })}
+                    className="w-full p-2.5 border-2 border-yellow-200 rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all text-sm"
+                    placeholder="0"
+                    required
+                    min="0"
+                  />
+                </div>
 
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">
-                  Product Image <span className="text-red-500">*</span>
-                </label>
-                
-                {!selectedProduct.imageUrl ? (
-                  <div className="w-full">
-                    <div className="w-full flex justify-center items-center border-2 border-dashed border-yellow-300 rounded-xl p-8 bg-yellow-50 hover:bg-yellow-100 transition-colors">
-                      <div className="text-center">
-                        <Upload className="w-12 h-12 text-yellow-500 mx-auto mb-3" />
-                        <UploadButton
-                          endpoint="imageUploader"
-                          appearance={{
-                            button: "bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 font-bold px-8 py-3 rounded-xl hover:from-yellow-500 hover:to-yellow-600 transition-all ut-ready:bg-gradient-to-r ut-ready:from-yellow-400 ut-ready:to-yellow-500 ut-uploading:cursor-not-allowed ut-uploading:opacity-50",
-                            container: "w-full flex flex-col items-center justify-center gap-2",
-                            allowedContent: "text-gray-600 text-sm"
-                          }}
-                          onClientUploadComplete={(res) => {
-                            if (res && res[0]) {
-                              setSelectedProduct({ ...selectedProduct, imageUrl: res[0].url });
-                              toast.success("Image uploaded successfully!");
-                            }
-                            setIsEditUploading(false);
-                          }}
-                          onUploadBegin={() => {
-                            setIsEditUploading(true);
-                          }}
-                          onUploadError={(error) => {
-                            toast.error("Upload failed!");
-                            setIsEditUploading(false);
-                          }}
-                        />
-                        {isEditUploading && (
-                          <p className="text-sm text-yellow-600 font-medium mt-3">Uploading...</p>
-                        )}
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    Product Image <span className="text-red-500">*</span>
+                  </label>
+                  
+                  {!selectedProduct.imageUrl ? (
+                    <div className="w-full">
+                      <div className="w-full flex justify-center items-center border-2 border-dashed border-yellow-300 rounded-xl p-3 bg-yellow-50 hover:bg-yellow-100 transition-colors">
+                        <div className="text-center">
+                          <UploadButton
+                            endpoint="imageUploader"
+                            appearance={{
+                              button: "bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 font-bold px-4 text-xs py-2 rounded-xl hover:from-yellow-500 hover:to-yellow-600 transition-all ut-ready:bg-gradient-to-r ut-ready:from-yellow-400 ut-ready:to-yellow-500 ut-uploading:cursor-not-allowed ut-uploading:opacity-50",
+                              container: "w-full flex flex-col items-center justify-center gap-1",
+                              allowedContent: "text-gray-600 text-xs"
+                            }}
+                            onClientUploadComplete={(res) => {
+                              if (res && res[0]) {
+                                setSelectedProduct({ ...selectedProduct, imageUrl: res[0].url });
+                                toast.success("Image uploaded successfully!");
+                              }
+                              setIsEditUploading(false);
+                            }}
+                            onUploadBegin={() => {
+                              setIsEditUploading(true);
+                            }}
+                            onUploadError={(error) => {
+                              toast.error("Upload failed!");
+                              setIsEditUploading(false);
+                            }}
+                          />
+                          {isEditUploading && (
+                            <p className="text-xs text-yellow-600 font-medium mt-2">Uploading...</p>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ) : (
-                  <div className="relative">
-                    <img
-                      src={selectedProduct.imageUrl}
-                      alt="Preview"
-                      className="w-full h-64 object-cover rounded-xl border-2 border-yellow-200"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setSelectedProduct({ ...selectedProduct, imageUrl: "" })}
-                      className="absolute top-2 right-2 p-2 bg-red-500 hover:bg-red-600 text-white rounded-full transition-colors shadow-lg"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
-                    <div className="absolute bottom-2 left-2 right-2 bg-black/70 text-white px-3 py-2 rounded-lg text-sm">
-                      Image uploaded successfully
+                  ) : (
+                    <div className="relative h-20 w-full">
+                      <img
+                        src={selectedProduct.imageUrl}
+                        alt="Preview"
+                        className="w-full h-full object-cover rounded-xl border-2 border-yellow-200"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setSelectedProduct({ ...selectedProduct, imageUrl: "" })}
+                        className="absolute top-1 right-1 p-1 bg-red-500 hover:bg-red-600 text-white rounded-full transition-colors shadow-lg"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
 
               <button
                 type="submit"
-                disabled={isEditUploading || (selectedProduct.category === "Tyres" && (!selectedProduct.models || selectedProduct.models.length === 0))}
-                className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 py-4 rounded-xl hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 shadow-lg hover:shadow-yellow-500/50 font-bold text-lg transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={isEditUploading || (selectedProduct.category === "Tyres" && (!selectedProduct.tyreModel || selectedProduct.tyreModel.length === 0))}
+                className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 py-3 rounded-xl hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 shadow-lg hover:shadow-yellow-500/50 font-bold text-base transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isEditUploading ? "Uploading Image..." : "Update Product"}
               </button>

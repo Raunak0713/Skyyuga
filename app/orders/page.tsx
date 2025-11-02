@@ -143,7 +143,7 @@ const OrderPage = () => {
                                                                         <p className="text-sm text-gray-600"><span className="font-semibold">Name:</span> {order.name}</p>
                                                                         <p className="text-sm text-gray-600"><span className="font-semibold">Email:</span> {order.email}</p>
                                                                         <p className="text-sm text-gray-600 flex items-center gap-2">
-                                                                            Phone:
+                                                                            <span className='font-semibold'>Phone:</span>
                                                                             {order.contactNumber}
                                                                         </p>
                                                                     </div>
