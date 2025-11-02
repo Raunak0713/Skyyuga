@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   title: "Skyyuga",
   description: "Place for all your car needs",
   icons : {
-    icon : "/logo.ico"
+    icon : "/tyre.ico"
   }
 };
 
