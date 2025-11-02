@@ -24,7 +24,6 @@ export default function Home() {
   const [orderProcessing, setOrderProcessing] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   
-  // Tire filter states
   const [selectedTireSize, setSelectedTireSize] = useState<string | undefined>("");
   const [selectedTireModel, setSelectedTireModel] = useState<string>("");
   const [modelSearchQuery, setModelSearchQuery] = useState<string>("");
@@ -38,13 +37,11 @@ export default function Home() {
 
   const products = useQuery(api.product.getAllProducts) ?? [];
   
-  // Fetch tire data with filters - always fetch to get unique values
   const tireData = useQuery(api.product.getAllTyres, {
     size: selectedTireSize || undefined,
     model: selectedTireModel || undefined,
   });
   
-  // Fetch unfiltered tire data for filter options
   const allTireData = useQuery(api.product.getAllTyres, {});
 
   const userData = useQuery(api.user.getUserByEmail, {
@@ -111,34 +108,26 @@ export default function Home() {
     ...Array.from(new Set(products.map((p) => p.category))),
   ];
   
-  // Determine if we should show tire filters
+
   const showTireFilters = selectedCategory === "All" || selectedCategory === "Tyres";
   const anyTireFilterActive = selectedTireSize || selectedTireModel;
   
-  // Use allTireData for filter options to prevent disappearing
   const filterOptions = allTireData || { uniqueSizes: [], uniqueModels: [] };
   
-  // Filter models based on search query
   const filteredModels = filterOptions.uniqueModels.filter(model =>
     model.toLowerCase().includes(modelSearchQuery.toLowerCase())
   );
   
-  // Check if we're loading filtered tire data
   const isLoadingFilteredTires = showTireFilters && anyTireFilterActive && !tireData;
   
-  // Determine which products to display
   let filteredProducts;
   if (showTireFilters && anyTireFilterActive && tireData) {
-    // Show only filtered tires
     filteredProducts = tireData.tyres;
   } else if (selectedCategory === "Tyres") {
-    // Show all tires
     filteredProducts = products.filter((p) => p.category === "Tyres");
   } else if (selectedCategory === "All") {
-    // Show all products
     filteredProducts = products;
   } else {
-    // Show products by selected category
     filteredProducts = products.filter((p) => p.category === selectedCategory);
   }
 
@@ -746,52 +735,59 @@ export default function Home() {
                 </div>
               ))
             ) : (
-              filteredProducts.map((product) => (
-                <div
-                  key={product._id}
-                  onClick={() => router.push(`/product/${product._id}`)}
-                  className="group relative bg-white border-2 border-gray-200 rounded-2xl overflow-hidden hover:border-yellow-400 transition-all duration-500 hover:shadow-2xl hover:shadow-yellow-500/20 transform hover:scale-105"
-                >
-                  <div className="relative overflow-hidden h-64">
-                    <img
-                      src={product.imageUrl}
-                      alt={product.title}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent opacity-60"></div>
-                    <div className="absolute top-4 right-4 flex flex-col gap-2 items-center">
-                      <span className="bg-yellow-400 text-gray-900 text-xs font-bold px-3 py-1 rounded-full">
-                        {product.category}
-                      </span>
-                      {product.category === "Tyres" && product.tyreSize && (
-                        <span className="bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">
-                          {product.tyreSize}
+              filteredProducts.map((product) => {
+                const firstImage = Array.isArray(product.imageUrl) ? product.imageUrl[0] : product.imageUrl;
+                
+                return (
+                  <div
+                    key={product._id}
+                    onClick={() => router.push(`/product/${product._id}`)}
+                    className="group relative bg-white border-2 border-gray-200 rounded-2xl overflow-hidden hover:border-yellow-400 transition-all duration-500 hover:shadow-2xl hover:shadow-yellow-500/20 transform hover:scale-105 cursor-pointer"
+                  >
+                    <div className="relative overflow-hidden h-64">
+                      <img
+                        src={firstImage}
+                        alt={product.title}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent opacity-60"></div>
+                      <div className="absolute top-4 right-4 flex flex-col gap-2 items-center">
+                        <span className="bg-yellow-400 text-gray-900 text-xs font-bold px-3 py-1 rounded-full">
+                          {product.category}
                         </span>
-                      )}
+                        {product.category === "Tyres" && product.tyreSize && (
+                          <span className="bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">
+                            {product.tyreSize}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="p-6 space-y-4">
+                      <h4 className="font-bold text-2xl text-gray-900">
+                        {product.title}
+                      </h4>
+                      <div className="flex items-center justify-between">
+                        <p className="text-3xl font-black bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
+                          ₹ {product.cost}
+                        </p>
+                        <button
+                          className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 px-6 py-3 rounded-full hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 shadow-lg hover:shadow-yellow-500/50 font-bold transform hover:scale-110"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            addToCart({
+                              ...product,
+                              imageUrl: firstImage
+                            });
+                            toast.success("Added to cart!");
+                          }}
+                        >
+                          Add to Cart
+                        </button>
+                      </div>
                     </div>
                   </div>
-                  <div className="p-6 space-y-4">
-                    <h4 className="font-bold text-2xl text-gray-900">
-                      {product.title}
-                    </h4>
-                    <div className="flex items-center justify-between">
-                      <p className="text-3xl font-black bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
-                        ₹ {product.cost}
-                      </p>
-                      <button
-                        className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 px-6 py-3 rounded-full hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 shadow-lg hover:shadow-yellow-500/50 font-bold transform hover:scale-110"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          addToCart(product);
-                          toast.success("Added to cart!");
-                        }}
-                      >
-                        Add to Cart
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </section>
@@ -882,52 +878,56 @@ export default function Home() {
             </div>
           ) : (
             <div className="flex-1 overflow-y-auto space-y-4">
-              {cartItems.map((item) => (
-                <div
-                  key={item._id}
-                  className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 hover:border-yellow-400 transition-all duration-300"
-                >
-                  <div className="flex items-center space-x-4 mb-3">
-                    <img
-                      src={item.imageUrl}
-                      alt={item.title}
-                      className="w-16 h-16 object-cover rounded-lg"
-                    />
-                    <div className="flex-1">
-                      <p className="font-bold text-gray-900">{item.title}</p>
-                      <p className="text-yellow-600 font-semibold">
-                        ₹{item.cost} × {item.quantity}
+              {cartItems.map((item) => {
+                const itemImage = Array.isArray(item.imageUrl) ? item.imageUrl[0] : item.imageUrl;
+                
+                return (
+                  <div
+                    key={item._id}
+                    className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 hover:border-yellow-400 transition-all duration-300"
+                  >
+                    <div className="flex items-center space-x-4 mb-3">
+                      <img
+                        src={itemImage}
+                        alt={item.title}
+                        className="w-16 h-16 object-cover rounded-lg"
+                      />
+                      <div className="flex-1">
+                        <p className="font-bold text-gray-900">{item.title}</p>
+                        <p className="text-yellow-600 font-semibold">
+                          ₹{item.cost} × {item.quantity}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3 bg-white rounded-full px-3 py-1 border border-yellow-200">
+                        <button
+                          className="text-gray-900 hover:text-yellow-600 transition-colors font-bold text-lg w-8 h-8 flex items-center justify-center"
+                          onClick={() =>
+                            updateQuantity(item._id, item.quantity - 1)
+                          }
+                        >
+                          −
+                        </button>
+                        <span className="font-bold text-gray-900 min-w-[2rem] text-center">
+                          {item.quantity}
+                        </span>
+                        <button
+                          className="text-gray-900 hover:text-yellow-600 transition-colors font-bold text-lg w-8 h-8 flex items-center justify-center"
+                          onClick={() =>
+                            updateQuantity(item._id, item.quantity + 1)
+                          }
+                        >
+                          +
+                        </button>
+                      </div>
+                      <p className="font-bold text-xl text-gray-900">
+                        ₹{item.cost * item.quantity}
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3 bg-white rounded-full px-3 py-1 border border-yellow-200">
-                      <button
-                        className="text-gray-900 hover:text-yellow-600 transition-colors font-bold text-lg w-8 h-8 flex items-center justify-center"
-                        onClick={() =>
-                          updateQuantity(item._id, item.quantity - 1)
-                        }
-                      >
-                        −
-                      </button>
-                      <span className="font-bold text-gray-900 min-w-[2rem] text-center">
-                        {item.quantity}
-                      </span>
-                      <button
-                        className="text-gray-900 hover:text-yellow-600 transition-colors font-bold text-lg w-8 h-8 flex items-center justify-center"
-                        onClick={() =>
-                          updateQuantity(item._id, item.quantity + 1)
-                        }
-                      >
-                        +
-                      </button>
-                    </div>
-                    <p className="font-bold text-xl text-gray-900">
-                      ₹{item.cost * item.quantity}
-                    </p>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
 

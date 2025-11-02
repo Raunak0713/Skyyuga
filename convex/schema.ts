@@ -24,7 +24,7 @@ export default defineSchema({
     products : defineTable({
         title : v.string(),
         description : v.string(),
-        imageUrl : v.string(),
+        imageUrl : v.array(v.string()),
         cost : v.number(),
         category : v.string(),
         tyreSize : v.optional(v.string()),

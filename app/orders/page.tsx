@@ -117,7 +117,13 @@ const OrderPage = () => {
                                                         </div>
                                                     </td>
                                                     <td className="px-3 py-4 whitespace-nowrap ml-2">
-                                                        <div className='bg-amber-300 rounded-2xl text-center text-sm'>
+                                                        <div className={`rounded-2xl text-center text-sm px-3 py-1 font-semibold ${
+                                                            order.status === "PENDING" ? "bg-yellow-100 text-yellow-700" :
+                                                            order.status === "ACCEPTED" ? "bg-blue-100 text-blue-700" :
+                                                            order.status === "DELIVERING" ? "bg-purple-100 text-purple-700" :
+                                                            order.status === "DELIVERED" ? "bg-green-100 text-green-700" :
+                                                            "bg-red-100 text-red-700"
+                                                        }`}>
                                                             {order.status}
                                                         </div>
                                                     </td>
@@ -186,6 +192,15 @@ const OrderPage = () => {
                                             <div>
                                                 <p className="text-xs font-semibold text-gray-900 uppercase mb-1">Order ID</p>
                                                 <p className="font-mono font-bold text-gray-900">#{order._id}</p>
+                                            </div>
+                                            <div className={`rounded-2xl text-center text-xs px-3 py-1 font-semibold ${
+                                                order.status === "PENDING" ? "bg-yellow-100 text-yellow-700" :
+                                                order.status === "ACCEPTED" ? "bg-blue-100 text-blue-700" :
+                                                order.status === "DELIVERING" ? "bg-purple-100 text-purple-700" :
+                                                order.status === "DELIVERED" ? "bg-green-100 text-green-700" :
+                                                "bg-red-100 text-red-700"
+                                            }`}>
+                                                {order.status}
                                             </div>
                                         </div>
                                     </div>
@@ -270,7 +285,6 @@ const OrderPage = () => {
     );
 }
 
-// New component to fetch and display product details
 const ProductItem = ({ productId, quantity }: { productId: Id<"products">, quantity: number }) => {
     const product = useQuery(api.product.getProductById, { id : productId });
 
@@ -286,10 +300,12 @@ const ProductItem = ({ productId, quantity }: { productId: Id<"products">, quant
         );
     }
 
+    const firstImage = Array.isArray(product.imageUrl) ? product.imageUrl[0] : product.imageUrl;
+
     return (
         <div className="flex items-center gap-3 bg-white p-3 rounded-lg border border-yellow-200 hover:border-yellow-300 transition-colors">
             <img 
-                src={product.imageUrl} 
+                src={firstImage} 
                 alt={product.title}
                 className="w-16 h-16 object-cover rounded-md"
             />

@@ -5,10 +5,9 @@ import { Id } from '@/convex/_generated/dataModel';
 import { useQuery } from 'convex/react';
 import { useParams, useRouter } from 'next/navigation';
 import React, { useState } from 'react';
-import { ShoppingCart, Shield, Truck, RotateCcw, ArrowLeft } from 'lucide-react';
+import { ShoppingCart, Shield, Truck, RotateCcw, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useCart } from '@/context/cartContext';
 import { toast } from 'sonner';
-import Image from 'next/image';
 
 const ProductPage = () => {
     const params = useParams();
@@ -17,10 +16,10 @@ const ProductPage = () => {
     
     const product = useQuery(api.product.getProductById, id ? { id } : "skip");
     
-    // Use global cart context
     const { addToCart } = useCart();
     
     const [quantity, setQuantity] = useState(1);
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
     if (!product) {
         return (
@@ -33,17 +32,28 @@ const ProductPage = () => {
         );
     }
 
+    const images = Array.isArray(product.imageUrl) ? product.imageUrl : [product.imageUrl];
+    const totalImages = images.length;
+
     const handleAddToCart = () => {
         for (let i = 0; i < quantity; i++) {
             addToCart({
                 _id: product._id,
                 title: product.title,
                 cost: product.cost,
-                imageUrl: product.imageUrl,
+                imageUrl: images[0],
                 category: product.category
             });
         }
         toast.success(`Added ${quantity} ${quantity > 1 ? 'items' : 'item'} to cart!`);
+    };
+
+    const goToPrevImage = () => {
+        setCurrentImageIndex((prev) => (prev === 0 ? totalImages - 1 : prev - 1));
+    };
+
+    const goToNextImage = () => {
+        setCurrentImageIndex((prev) => (prev === totalImages - 1 ? 0 : prev + 1));
     };
 
     return (
@@ -61,17 +71,70 @@ const ProductPage = () => {
             <div className="container mx-auto px-4 py-8 lg:py-16">
                 <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
                     
-                    <div className="relative group">
-                        <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/20 to-amber-400/20 rounded-3xl blur-3xl group-hover:blur-2xl transition-all duration-500"></div>
-                        <div className="relative bg-white rounded-3xl shadow-2xl overflow-hidden border border-yellow-100">
-                            <img 
-                                src={product.imageUrl} 
-                                alt={product.title}
-                                className="w-full h-[400px] lg:h-[600px] object-cover hover:scale-105 transition-transform duration-700"
-                            />
+                    {/* Image Gallery Section */}
+                    <div className="space-y-4">
+                        {/* Main Image */}
+                        <div className="relative group">
+                            <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/20 to-amber-400/20 rounded-3xl blur-3xl group-hover:blur-2xl transition-all duration-500"></div>
+                            <div className="relative bg-white rounded-3xl shadow-2xl overflow-hidden border border-yellow-100">
+                                <img 
+                                    src={images[currentImageIndex]} 
+                                    alt={`${product.title} - Image ${currentImageIndex + 1}`}
+                                    className="w-full h-[400px] lg:h-[600px] object-cover"
+                                />
+                                
+                                {/* Navigation Arrows - Only show if multiple images */}
+                                {totalImages > 1 && (
+                                    <>
+                                        <button
+                                            onClick={goToPrevImage}
+                                            className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/90 hover:bg-white shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-110 group/btn"
+                                            aria-label="Previous image"
+                                        >
+                                            <ChevronLeft className="w-6 h-6 text-gray-700 group-hover/btn:text-yellow-600" />
+                                        </button>
+                                        <button
+                                            onClick={goToNextImage}
+                                            className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/90 hover:bg-white shadow-lg flex items-center justify-center transition-all duration-300 hover:scale-110 group/btn"
+                                            aria-label="Next image"
+                                        >
+                                            <ChevronRight className="w-6 h-6 text-gray-700 group-hover/btn:text-yellow-600" />
+                                        </button>
+                                        
+                                        {/* Image Counter */}
+                                        <div className="absolute bottom-4 right-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                                            {currentImageIndex + 1} / {totalImages}
+                                        </div>
+                                    </>
+                                )}
+                            </div>
                         </div>
+
+                        {/* Thumbnail Gallery - Only show if multiple images */}
+                        {totalImages > 1 && (
+                            <div className="grid grid-cols-4 gap-3">
+                                {images.map((img, index) => (
+                                    <button
+                                        key={index}
+                                        onClick={() => setCurrentImageIndex(index)}
+                                        className={`relative rounded-xl overflow-hidden border-2 transition-all duration-300 ${
+                                            currentImageIndex === index 
+                                                ? 'border-yellow-500 ring-2 ring-yellow-200 shadow-lg scale-105' 
+                                                : 'border-gray-200 hover:border-yellow-300 opacity-70 hover:opacity-100'
+                                        }`}
+                                    >
+                                        <img 
+                                            src={img} 
+                                            alt={`${product.title} thumbnail ${index + 1}`}
+                                            className="w-full h-20 object-cover"
+                                        />
+                                    </button>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
+                    {/* Product Details Section */}
                     <div className="space-y-6">
                         <div className="space-y-2">
                             <p className="text-yellow-600 font-semibold tracking-wider uppercase text-sm">

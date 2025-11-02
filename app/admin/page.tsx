@@ -35,7 +35,7 @@ const AdminPage = () => {
   const [newProduct, setNewProduct] = useState({
     title: "",
     description: "",
-    imageUrl: "",
+    imageUrl: [] as string[],
     cost: 0,
     category: "",
     size: "",
@@ -81,7 +81,6 @@ const AdminPage = () => {
     );
   }
 
-  // Error handling
   if ("error" in allUsers) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-white to-yellow-50 flex items-center justify-center">
@@ -99,6 +98,12 @@ const AdminPage = () => {
 
   const handleProductSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (newProduct.imageUrl.length === 0) {
+      toast.error("Please upload at least one image");
+      return;
+    }
+    
     try {
       const productData = {
         title: newProduct.title,
@@ -117,7 +122,7 @@ const AdminPage = () => {
       setNewProduct({
         title: "",
         description: "",
-        imageUrl: "",
+        imageUrl: [],
         cost: 0,
         category: "",
         size: "",
@@ -160,9 +165,28 @@ const AdminPage = () => {
     });
   };
 
+  const removeImage = (index: number) => {
+    setNewProduct({
+      ...newProduct,
+      imageUrl: newProduct.imageUrl.filter((_, i) => i !== index),
+    });
+  };
+
+  const removeEditImage = (index: number) => {
+    setSelectedProduct({
+      ...selectedProduct,
+      imageUrl: selectedProduct.imageUrl.filter((_: string, i: number) => i !== index),
+    });
+  };
+
   const handleProductUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedProduct) return;
+    
+    if (selectedProduct.imageUrl.length === 0) {
+      toast.error("Please upload at least one image");
+      return;
+    }
     
     try {
       const updateData = {
@@ -173,8 +197,8 @@ const AdminPage = () => {
         cost: selectedProduct.cost,
         category: selectedProduct.category,
         ...(selectedProduct.category === "Tyres" && {
-          size: selectedProduct.tyreSize || "",
-          models: selectedProduct.tyreModel || [],
+          tyreSize: selectedProduct.tyreSize || "",
+          tyreModel: selectedProduct.tyreModel || [],
         }),
       };
       await updateProduct(updateData);
@@ -268,7 +292,6 @@ const AdminPage = () => {
         </div>
       </header>
 
-
       <div className="relative z-10 max-w-7xl mx-auto px-6 mt-8">
         <div className="flex flex-wrap gap-4 mb-8">
           {tabs.map((tab) => {
@@ -298,7 +321,6 @@ const AdminPage = () => {
             );
           })}
         </div>
-
 
         <div className="mb-8 flex flex-col sm:flex-row gap-4">
           <div className="flex-1 relative">
@@ -360,9 +382,7 @@ const AdminPage = () => {
           )}
         </div>
 
-
         <div className="relative z-10 pb-12">
-
           {activeTab === "users" && (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {allUsers
@@ -406,7 +426,6 @@ const AdminPage = () => {
                 ))}
             </div>
           )}
-
 
           {activeTab === "orders" && (
             <div className="space-y-6">
@@ -507,7 +526,7 @@ const AdminPage = () => {
                               {item.productDetails ? (
                                 <>
                                   <img
-                                    src={item.productDetails.imageUrl}
+                                    src={Array.isArray(item.productDetails.imageUrl) ? item.productDetails.imageUrl[0] : item.productDetails.imageUrl}
                                     alt={item.productDetails.title}
                                     className="w-16 h-16 object-cover rounded-lg"
                                   />
@@ -548,7 +567,6 @@ const AdminPage = () => {
             </div>
           )}
 
-
           {activeTab === "products" && (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {allProducts
@@ -556,65 +574,77 @@ const AdminPage = () => {
                   p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                   p.category.toLowerCase().includes(searchTerm.toLowerCase())
                 )
-                .map((product) => (
-                  <div
-                    key={product._id}
-                    className="group bg-white border-2 border-yellow-200 rounded-2xl overflow-hidden hover:border-yellow-400 hover:shadow-2xl hover:shadow-yellow-500/20 transition-all duration-300 transform hover:scale-105"
-                  >
-                    <div className="relative h-48 overflow-hidden">
-                      <img
-                        src={product.imageUrl}
-                        alt={product.title}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                      />
-                      <div className="absolute top-4 right-4 flex gap-2">
-                        <span className="bg-yellow-400 text-gray-900 text-xs font-bold px-3 py-1 rounded-full">
-                          {product.category}
-                        </span>
-                        <button
-                          onClick={() => {
-                            setSelectedProduct(product);
-                            setEditProductModal(true);
-                          }}
-                          className="p-2 bg-white hover:bg-yellow-100 rounded-full transition-colors shadow-lg"
-                          title="Edit Product"
-                        >
-                          <Pencil className="w-4 h-4 text-gray-900" />
-                        </button>
-                        <button
-                          onClick={() => handleProductDelete(product._id)}
-                          className="p-2 bg-white hover:bg-red-100 rounded-full transition-colors shadow-lg"
-                          title="Delete Product"
-                        >
-                          <Trash2 className="w-4 h-4 text-red-600" />
-                        </button>
-                      </div>
-                    </div>
-                    <div className="p-6 space-y-3">
-                      <h4 className="font-bold text-xl text-gray-900">{product.title}</h4>
-                      <p className="text-gray-600 text-sm line-clamp-2">{product.description}</p>
-                      {product.category === "Tyres" && product.tyreSize && (
-                        <div className="pt-2 border-t border-yellow-100">
-                          <p className="text-xs text-gray-600">Size: <span className="font-semibold text-gray-900">{product.tyreSize}</span></p>
-                          {product.tyreModel && product.tyreModel.length > 0 && (
-                            <p className="text-xs text-gray-600 mt-1">Models: <span className="font-semibold text-gray-900">{product.tyreModel.join(", ")}</span></p>
+                .map((product) => {
+                  const firstImage = Array.isArray(product.imageUrl) ? product.imageUrl[0] : product.imageUrl;
+                  const imageCount = Array.isArray(product.imageUrl) ? product.imageUrl.length : 1;
+                  
+                  return (
+                    <div
+                      key={product._id}
+                      className="group bg-white border-2 border-yellow-200 rounded-2xl overflow-hidden hover:border-yellow-400 hover:shadow-2xl hover:shadow-yellow-500/20 transition-all duration-300 transform hover:scale-105"
+                    >
+                      <div className="relative h-48 overflow-hidden">
+                        <img
+                          src={firstImage}
+                          alt={product.title}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        />
+                        <div className="absolute top-4 left-4">
+                          <span className="bg-yellow-400 text-gray-900 text-xs font-bold px-3 py-1 rounded-full">
+                            {product.category}
+                          </span>
+                          {imageCount > 1 && (
+                            <span className="ml-2 bg-white/90 text-gray-900 text-xs font-bold px-3 py-1 rounded-full">
+                              {imageCount} photos
+                            </span>
                           )}
                         </div>
-                      )}
-                      <div className="pt-3 border-t border-yellow-100">
-                        <p className="text-3xl font-black bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
-                          ₹{product.cost}
-                        </p>
+                        <div className="absolute top-4 right-4 flex gap-2">
+                          <button
+                            onClick={() => {
+                              setSelectedProduct(product);
+                              setEditProductModal(true);
+                            }}
+                            className="p-2 bg-white hover:bg-yellow-100 rounded-full transition-colors shadow-lg"
+                            title="Edit Product"
+                          >
+                            <Pencil className="w-4 h-4 text-gray-900" />
+                          </button>
+                          <button
+                            onClick={() => handleProductDelete(product._id)}
+                            className="p-2 bg-white hover:bg-red-100 rounded-full transition-colors shadow-lg"
+                            title="Delete Product"
+                          >
+                            <Trash2 className="w-4 h-4 text-red-600" />
+                          </button>
+                        </div>
+                      </div>
+                      <div className="p-6 space-y-3">
+                        <h4 className="font-bold text-xl text-gray-900">{product.title}</h4>
+                        <p className="text-gray-600 text-sm line-clamp-2">{product.description}</p>
+                        {product.category === "Tyres" && product.tyreSize && (
+                          <div className="pt-2 border-t border-yellow-100">
+                            <p className="text-xs text-gray-600">Size: <span className="font-semibold text-gray-900">{product.tyreSize}</span></p>
+                            {product.tyreModel && product.tyreModel.length > 0 && (
+                              <p className="text-xs text-gray-600 mt-1">Models: <span className="font-semibold text-gray-900">{product.tyreModel.join(", ")}</span></p>
+                            )}
+                          </div>
+                        )}
+                        <div className="pt-3 border-t border-yellow-100">
+                          <p className="text-3xl font-black bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
+                            ₹{product.cost}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
             </div>
           )}
         </div>
       </div>
 
-
+      {/* Add Product Modal */}
       {addProductModal && (
         <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col animate-fade-in">
@@ -753,81 +783,89 @@ const AdminPage = () => {
                 />
               </div>
 
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Cost (₹) <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    value={newProduct.cost}
-                    onChange={(e) => setNewProduct({ ...newProduct, cost: Number(e.target.value) })}
-                    className="w-full p-2.5 border-2 border-yellow-200 rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all text-sm"
-                    placeholder="0"
-                    required
-                    min="0"
-                  />
-                </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  Cost (₹) <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  value={newProduct.cost}
+                  onChange={(e) => setNewProduct({ ...newProduct, cost: Number(e.target.value) })}
+                  className="w-full p-2.5 border-2 border-yellow-200 rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all text-sm"
+                  placeholder="0"
+                  required
+                  min="0"
+                />
+              </div>
 
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Product Image <span className="text-red-500">*</span>
-                  </label>
-                  
-                  {!newProduct.imageUrl ? (
-                    <div className="w-full">
-                      <div className="w-full flex justify-center items-center border-2 border-dashed border-yellow-300 rounded-xl p-3 bg-yellow-50 hover:bg-yellow-100 transition-colors">
-                        <div className="text-center">
-                          <UploadButton
-                            endpoint="imageUploader"
-                            appearance={{
-                              button: "bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 font-bold px-4 text-xs py-2 rounded-xl hover:from-yellow-500 hover:to-yellow-600 transition-all ut-ready:bg-gradient-to-r ut-ready:from-yellow-400 ut-ready:to-yellow-500 ut-uploading:cursor-not-allowed ut-uploading:opacity-50",
-                              container: "w-full flex flex-col items-center justify-center gap-1",
-                              allowedContent: "text-gray-600 text-xs"
-                            }}
-                            onClientUploadComplete={(res) => {
-                              if (res && res[0]) {
-                                setNewProduct({ ...newProduct, imageUrl: res[0].url });
-                                toast.success("Image uploaded successfully!");
-                              }
-                              setIsUploading(false);
-                            }}
-                            onUploadBegin={() => {
-                              setIsUploading(true);
-                            }}
-                            onUploadError={(error) => {
-                              toast.error("Upload failed!");
-                              setIsUploading(false);
-                            }}
-                          />
-                          {isUploading && (
-                            <p className="text-xs text-yellow-600 font-medium mt-2">Uploading...</p>
-                          )}
-                        </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  Product Images <span className="text-red-500">*</span>
+                </label>
+                
+                {newProduct.imageUrl.length > 0 && (
+                  <div className="grid grid-cols-3 gap-3 mb-3">
+                    {newProduct.imageUrl.map((img, index) => (
+                      <div key={index} className="relative h-24 w-full group">
+                        <img
+                          src={img}
+                          alt={`Preview ${index + 1}`}
+                          className="w-full h-full object-cover rounded-xl border-2 border-yellow-200"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(index)}
+                          className="absolute top-1 right-1 p-1 bg-red-500 hover:bg-red-600 text-white rounded-full transition-colors shadow-lg opacity-0 group-hover:opacity-100"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                        {index === 0 && (
+                          <div className="absolute bottom-1 left-1 bg-yellow-400 text-gray-900 text-xs font-bold px-2 py-0.5 rounded">
+                            Main
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  ) : (
-                    <div className="relative h-20 w-full">
-                      <img
-                        src={newProduct.imageUrl}
-                        alt="Preview"
-                        className="w-full h-full object-cover rounded-xl border-2 border-yellow-200"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setNewProduct({ ...newProduct, imageUrl: "" })}
-                        className="absolute top-1 right-1 p-1 bg-red-500 hover:bg-red-600 text-white rounded-full transition-colors shadow-lg"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </div>
-                  )}
+                    ))}
+                  </div>
+                )}
+                
+                <div className="w-full flex justify-center items-center border-2 border-dashed border-yellow-300 rounded-xl p-3 bg-yellow-50 hover:bg-yellow-100 transition-colors">
+                  <div className="text-center">
+                    <UploadButton
+                      endpoint="imageUploader"
+                      appearance={{
+                        button: "bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 font-bold px-4 text-xs py-2 rounded-xl hover:from-yellow-500 hover:to-yellow-600 transition-all ut-ready:bg-gradient-to-r ut-ready:from-yellow-400 ut-ready:to-yellow-500 ut-uploading:cursor-not-allowed ut-uploading:opacity-50",
+                        container: "w-full flex flex-col items-center justify-center gap-1",
+                        allowedContent: "text-gray-600 text-xs"
+                      }}
+                      onClientUploadComplete={(res) => {
+                        if (res && res[0]) {
+                          setNewProduct({ ...newProduct, imageUrl: [...newProduct.imageUrl, res[0].url] });
+                          toast.success("Image uploaded successfully!");
+                        }
+                        setIsUploading(false);
+                      }}
+                      onUploadBegin={() => {
+                        setIsUploading(true);
+                      }}
+                      onUploadError={(error) => {
+                        toast.error("Upload failed!");
+                        setIsUploading(false);
+                      }}
+                    />
+                    {isUploading && (
+                      <p className="text-xs text-yellow-600 font-medium mt-2">Uploading...</p>
+                    )}
+                    <p className="text-xs text-gray-500 mt-2">
+                      {newProduct.imageUrl.length === 0 ? "Upload at least 1 image" : "Upload more images"}
+                    </p>
+                  </div>
                 </div>
               </div>
 
               <button
                 type="submit"
-                disabled={isUploading || (newProduct.category === "Tyres" && newProduct.models.length === 0)}
+                disabled={isUploading || newProduct.imageUrl.length === 0 || (newProduct.category === "Tyres" && newProduct.models.length === 0)}
                 className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 py-3 rounded-xl hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 shadow-lg hover:shadow-yellow-500/50 font-bold text-base transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isUploading ? "Uploading Image..." : "Create Product"}
@@ -837,7 +875,7 @@ const AdminPage = () => {
         </div>
       )}
 
-
+      {/* Edit Product Modal */}
       {editProductModal && selectedProduct && (
         <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col animate-fade-in">
@@ -980,81 +1018,88 @@ const AdminPage = () => {
                 />
               </div>
 
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Cost (₹) <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    value={selectedProduct.cost}
-                    onChange={(e) => setSelectedProduct({ ...selectedProduct, cost: Number(e.target.value) })}
-                    className="w-full p-2.5 border-2 border-yellow-200 rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all text-sm"
-                    placeholder="0"
-                    required
-                    min="0"
-                  />
-                </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  Cost (₹) <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  value={selectedProduct.cost}
+                  onChange={(e) => setSelectedProduct({ ...selectedProduct, cost: Number(e.target.value) })}
+                  className="w-full p-2.5 border-2 border-yellow-200 rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all text-sm"
+                  placeholder="0"
+                  required
+                  min="0"
+                />
+              </div>
 
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Product Image <span className="text-red-500">*</span>
-                  </label>
-                  
-                  {!selectedProduct.imageUrl ? (
-                    <div className="w-full">
-                      <div className="w-full flex justify-center items-center border-2 border-dashed border-yellow-300 rounded-xl p-3 bg-yellow-50 hover:bg-yellow-100 transition-colors">
-                        <div className="text-center">
-                          <UploadButton
-                            endpoint="imageUploader"
-                            appearance={{
-                              button: "bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 font-bold px-4 text-xs py-2 rounded-xl hover:from-yellow-500 hover:to-yellow-600 transition-all ut-ready:bg-gradient-to-r ut-ready:from-yellow-400 ut-ready:to-yellow-500 ut-uploading:cursor-not-allowed ut-uploading:opacity-50",
-                              container: "w-full flex flex-col items-center justify-center gap-1",
-                              allowedContent: "text-gray-600 text-xs"
-                            }}
-                            onClientUploadComplete={(res) => {
-                              if (res && res[0]) {
-                                setSelectedProduct({ ...selectedProduct, imageUrl: res[0].url });
-                                toast.success("Image uploaded successfully!");
-                              }
-                              setIsEditUploading(false);
-                            }}
-                            onUploadBegin={() => {
-                              setIsEditUploading(true);
-                            }}
-                            onUploadError={(error) => {
-                              toast.error("Upload failed!");
-                              setIsEditUploading(false);
-                            }}
-                          />
-                          {isEditUploading && (
-                            <p className="text-xs text-yellow-600 font-medium mt-2">Uploading...</p>
-                          )}
-                        </div>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  Product Images <span className="text-red-500">*</span>
+                </label>
+                
+                {selectedProduct.imageUrl && selectedProduct.imageUrl.length > 0 && (
+                  <div className="grid grid-cols-3 gap-3 mb-3">
+                    {selectedProduct.imageUrl.map((img: string, index: number) => (
+                      <div key={index} className="relative h-24 w-full group">
+                        <img
+                          src={img}
+                          alt={`Preview ${index + 1}`}
+                          className="w-full h-full object-cover rounded-xl border-2 border-yellow-200"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeEditImage(index)}
+                          className="absolute top-1 right-1 p-1 bg-red-500 hover:bg-red-600 text-white rounded-full transition-colors shadow-lg opacity-0 group-hover:opacity-100"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                        {index === 0 && (
+                          <div className="absolute bottom-1 left-1 bg-yellow-400 text-gray-900 text-xs font-bold px-2 py-0.5 rounded">
+                            Main
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  ) : (
-                    <div className="relative h-20 w-full">
-                      <img
-                        src={selectedProduct.imageUrl}
-                        alt="Preview"
-                        className="w-full h-full object-cover rounded-xl border-2 border-yellow-200"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setSelectedProduct({ ...selectedProduct, imageUrl: "" })}
-                        className="absolute top-1 right-1 p-1 bg-red-500 hover:bg-red-600 text-white rounded-full transition-colors shadow-lg"
-                      >
-                        <X className="w-3 h-3" />
-                      </button>
-                    </div>
-                  )}
+                    ))}
+                  </div>
+                )}
+                
+                <div className="w-full flex justify-center items-center border-2 border-dashed border-yellow-300 rounded-xl p-3 bg-yellow-50 hover:bg-yellow-100 transition-colors">
+                  <div className="text-center">
+                    <UploadButton
+                      endpoint="imageUploader"
+                      appearance={{
+                        button: "bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 font-bold px-4 text-xs py-2 rounded-xl hover:from-yellow-500 hover:to-yellow-600 transition-all ut-ready:bg-gradient-to-r ut-ready:from-yellow-400 ut-ready:to-yellow-500 ut-uploading:cursor-not-allowed ut-uploading:opacity-50",
+                        container: "w-full flex flex-col items-center justify-center gap-1",
+                        allowedContent: "text-gray-600 text-xs"
+                      }}
+                      onClientUploadComplete={(res) => {
+                        if (res && res[0]) {
+                          const currentImages = Array.isArray(selectedProduct.imageUrl) ? selectedProduct.imageUrl : [selectedProduct.imageUrl];
+                          setSelectedProduct({ ...selectedProduct, imageUrl: [...currentImages, res[0].url] });
+                          toast.success("Image uploaded successfully!");
+                        }
+                        setIsEditUploading(false);
+                      }}
+                      onUploadBegin={() => {
+                        setIsEditUploading(true);
+                      }}
+                      onUploadError={(error) => {
+                        toast.error("Upload failed!");
+                        setIsEditUploading(false);
+                      }}
+                    />
+                    {isEditUploading && (
+                      <p className="text-xs text-yellow-600 font-medium mt-2">Uploading...</p>
+                    )}
+                    <p className="text-xs text-gray-500 mt-2">Upload more images</p>
+                  </div>
                 </div>
               </div>
 
               <button
                 type="submit"
-                disabled={isEditUploading || (selectedProduct.category === "Tyres" && (!selectedProduct.tyreModel || selectedProduct.tyreModel.length === 0))}
+                disabled={isEditUploading || !selectedProduct.imageUrl || selectedProduct.imageUrl.length === 0 || (selectedProduct.category === "Tyres" && (!selectedProduct.tyreModel || selectedProduct.tyreModel.length === 0))}
                 className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 py-3 rounded-xl hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 shadow-lg hover:shadow-yellow-500/50 font-bold text-base transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isEditUploading ? "Uploading Image..." : "Update Product"}
@@ -1064,7 +1109,7 @@ const AdminPage = () => {
         </div>
       )}
 
-
+      {/* Edit Order Modal */}
       {editOrderModal && selectedOrder && (
         <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md mx-auto overflow-hidden animate-fade-in">
@@ -1129,7 +1174,7 @@ const AdminPage = () => {
         </div>
       )}
 
-
+      {/* Delete Confirmation Modal */}
       {deleteConfirmModal && (
         <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md mx-auto overflow-hidden animate-fade-in">

@@ -8,7 +8,6 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'iiedtt3r8m.ufs.sh',
       },
-      // Add utfs.io for direct file URLs
       {
         protocol: 'https',
         hostname: 'utfs.io',
