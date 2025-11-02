@@ -48,7 +48,6 @@ const ProductPage = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-yellow-50">
-            {/* Back Button */}
             <div className="container mx-auto px-4 pt-8">
                 <button
                     onClick={() => router.push('/')}
@@ -62,7 +61,6 @@ const ProductPage = () => {
             <div className="container mx-auto px-4 py-8 lg:py-16">
                 <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
                     
-                    {/* Left Half - Product Image */}
                     <div className="relative group">
                         <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/20 to-amber-400/20 rounded-3xl blur-3xl group-hover:blur-2xl transition-all duration-500"></div>
                         <div className="relative bg-white rounded-3xl shadow-2xl overflow-hidden border border-yellow-100">
@@ -74,7 +72,6 @@ const ProductPage = () => {
                         </div>
                     </div>
 
-                    {/* Right Half - Product Details */}
                     <div className="space-y-6">
                         <div className="space-y-2">
                             <p className="text-yellow-600 font-semibold tracking-wider uppercase text-sm">
@@ -85,19 +82,16 @@ const ProductPage = () => {
                             </h1>
                         </div>
 
-                        {/* Price */}
                         <div className="py-4 border-y border-yellow-100">
                             <p className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-600 to-amber-600">
                                 ₹ {product.cost.toLocaleString()}
                             </p>
                         </div>
 
-                        {/* Description */}
                         <p className="text-gray-600 leading-relaxed text-lg">
                             {product.description}
                         </p>
 
-                        {/* Quantity Selector */}
                         <div className="space-y-3">
                             <label className="text-sm font-semibold text-gray-700">Quantity</label>
                             <div className="flex items-center gap-4">
@@ -119,7 +113,6 @@ const ProductPage = () => {
                             </div>
                         </div>
 
-                        {/* Add to Cart Button */}
                         <button 
                             onClick={handleAddToCart}
                             className="w-full bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 text-white font-bold py-5 px-8 rounded-2xl shadow-xl hover:shadow-2xl transform hover:scale-[1.02] transition-all duration-300 flex items-center justify-center gap-3 text-lg"
@@ -128,7 +121,6 @@ const ProductPage = () => {
                             Add to Cart - ₹{(product.cost * quantity).toLocaleString()}
                         </button>
 
-                        {/* Features */}
                         <div className="grid grid-cols-3 gap-4 pt-6">
                             <div className="text-center space-y-2 p-4 rounded-xl bg-yellow-50/50 border border-yellow-100">
                                 <Truck className="w-6 h-6 mx-auto text-yellow-600" />

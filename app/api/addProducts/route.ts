@@ -6,7 +6,6 @@ export async function POST(req : NextRequest){
     try {
         const body = await req.json();
         const { title, description, imageUrl, cost, category } = body;
-        console.log({title, description, imageUrl, cost})
 
         await fetchMutation(api.product.createProducts, {
             title, 

@@ -241,7 +241,6 @@ const AdminPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-yellow-50 via-white to-yellow-50 relative overflow-hidden">
-      {/* Background Decorations */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-20 w-96 h-96 bg-yellow-200/30 rounded-full blur-3xl animate-pulse"></div>
         <div
@@ -250,7 +249,6 @@ const AdminPage = () => {
         ></div>
       </div>
 
-      {/* Header */}
       <header className="relative z-10 backdrop-blur-xl bg-white/80 border-b border-yellow-200 shadow-lg">
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
@@ -270,7 +268,7 @@ const AdminPage = () => {
         </div>
       </header>
 
-      {/* Tabs Navigation */}
+
       <div className="relative z-10 max-w-7xl mx-auto px-6 mt-8">
         <div className="flex flex-wrap gap-4 mb-8">
           {tabs.map((tab) => {
@@ -301,7 +299,7 @@ const AdminPage = () => {
           })}
         </div>
 
-        {/* Search Bar and Actions */}
+
         <div className="mb-8 flex flex-col sm:flex-row gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -362,9 +360,9 @@ const AdminPage = () => {
           )}
         </div>
 
-        {/* Content */}
+
         <div className="relative z-10 pb-12">
-          {/* Users Tab */}
+
           {activeTab === "users" && (
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {allUsers
@@ -409,7 +407,7 @@ const AdminPage = () => {
             </div>
           )}
 
-          {/* Orders Tab */}
+
           {activeTab === "orders" && (
             <div className="space-y-6">
               {allOrders
@@ -550,7 +548,7 @@ const AdminPage = () => {
             </div>
           )}
 
-          {/* Products Tab */}
+
           {activeTab === "products" && (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {allProducts
@@ -616,7 +614,7 @@ const AdminPage = () => {
         </div>
       </div>
 
-      {/* Add Product Modal */}
+
       {addProductModal && (
         <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col animate-fade-in">
@@ -839,7 +837,7 @@ const AdminPage = () => {
         </div>
       )}
 
-      {/* Edit Product Modal */}
+
       {editProductModal && selectedProduct && (
         <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col animate-fade-in">
@@ -1066,7 +1064,7 @@ const AdminPage = () => {
         </div>
       )}
 
-      {/* Edit Order Status Modal */}
+
       {editOrderModal && selectedOrder && (
         <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md mx-auto overflow-hidden animate-fade-in">
@@ -1131,7 +1129,7 @@ const AdminPage = () => {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
+
       {deleteConfirmModal && (
         <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md mx-auto overflow-hidden animate-fade-in">

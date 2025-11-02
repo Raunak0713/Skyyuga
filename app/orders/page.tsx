@@ -28,14 +28,14 @@ const OrderPage = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-yellow-50">
-            {/* Background Effects */}
+
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-20 left-20 w-96 h-96 bg-yellow-200/30 rounded-full blur-3xl animate-pulse"></div>
                 <div className="absolute bottom-20 right-20 w-96 h-96 bg-yellow-300/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
             </div>
 
             <div className="relative z-10 container mx-auto px-4 py-8 lg:py-12">
-                {/* Header */}
+
                 <div className="mb-8">
                     <button
                         onClick={() => router.push('/')}
@@ -66,7 +66,7 @@ const OrderPage = () => {
                     </div>
                 ) : (
                     <div className="space-y-6">
-                        {/* Desktop Table View */}
+
                         <div className="hidden lg:block backdrop-blur-xl bg-white/70 rounded-3xl shadow-2xl border border-yellow-200/50 overflow-hidden">
                             <div className="overflow-x-auto">
                                 <table className="w-full">
@@ -178,7 +178,6 @@ const OrderPage = () => {
                             </div>
                         </div>
 
-                        {/* Mobile Card View */}
                         <div className="lg:hidden space-y-4">
                             {AllUserOrders.map((order: any) => (
                                 <div key={order._id} className="backdrop-blur-xl bg-white/70 rounded-2xl shadow-xl border border-yellow-200/50 overflow-hidden">

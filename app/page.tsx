@@ -71,7 +71,6 @@ export default function Home() {
     const checkAdminStatus = async () => {
       if (user) {
         const adminStatus = await checkIsAdmin();
-        console.log(adminStatus)
         setIsAdmin(adminStatus);
       } else {
         setIsAdmin(false);
@@ -147,7 +146,6 @@ export default function Home() {
         ></div>
       </div>
 
-      {/* Phone Number Modal */}
       {phoneModalOpen && (
         <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-auto overflow-hidden animate-fade-in">
@@ -204,14 +202,13 @@ export default function Home() {
         </div>
       )}
 
-      {/* Header */}
       <header className="fixed top-0 w-full z-50 backdrop-blur-xl bg-white/80 border-b border-yellow-200">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
           <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
             Skyyuga
           </h1>
 
-          {/* Desktop Navigation */}
+
           <div className="hidden md:flex items-center space-x-16">
             <a
               href="https://wa.me/919825376646"
@@ -312,7 +309,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Mobile Dropdown Menu */}
+        
         {mobileMenuOpen && (
           <div className="md:hidden bg-white border-t border-yellow-200 shadow-lg">
             <div className="px-6 py-4 space-y-3">
@@ -363,7 +360,7 @@ export default function Home() {
       </header>
 
       <main className="pt-24 relative z-10">
-        {/* Hero */}
+      
         <section className="max-w-7xl mx-auto px-6 py-20 text-center">
           <div className="space-y-6 animate-fade-in">
             <h2 className="text-4xl sm:text-5xl md:text-7xl font-black mb-6 leading-tight">
@@ -380,9 +377,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Brand Marquee Section */}
         <section className="py-12 overflow-hidden relative">
-          {/* Layer 1 - scroll left */}
           <div className="relative w-full mb-8">
             <div className="flex animate-scroll-left gap-x-20">
               {[
@@ -408,7 +403,6 @@ export default function Home() {
                   />
                 </div>
               ))}
-              {/* Duplicate for infinite effect */}
               {[
                 "/images/apollo.jpeg",
                 "/images/bharatpet.jpeg",
@@ -435,7 +429,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Layer 2 - scroll right */}
           <div className="relative w-full mt-20">
             <div className="flex animate-scroll-right gap-x-20">
               {[
@@ -461,7 +454,6 @@ export default function Home() {
                   />
                 </div>
               ))}
-              {/* Duplicate for infinite effect */}
               {[
                 "/images/apollo.jpeg",
                 "/images/bharatpet.jpeg",
@@ -519,15 +511,12 @@ export default function Home() {
           `}</style>
         </section>
 
-        {/* Products */}
         <section id="products" className="max-w-7xl mx-auto px-6 py-20">
           <h3 className="text-4xl font-bold mb-8 text-center bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
             Featured Products
           </h3>
 
-          {/* Category Filter - Responsive */}
           <div className="mb-12">
-            {/* Mobile: Split into two rows, centered */}
             <div className="flex flex-col items-center gap-2 sm:hidden">
               <div className="inline-flex bg-yellow-50 border-2 border-yellow-200 rounded-full p-1 flex-nowrap">
                 {categories
@@ -573,7 +562,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Desktop/Laptop: Single row, horizontal scroll if needed */}
+
             <div className="hidden sm:flex justify-center overflow-x-auto pb-2">
               <div className="inline-flex bg-yellow-50 border-2 border-yellow-200 rounded-full p-1 flex-nowrap">
                 {categories.map((category) => (
@@ -597,10 +586,8 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Tire Filters - Custom Styled Dropdowns */}
           {showTireFilters && (
             <div className="mb-8 flex flex-col sm:flex-row gap-4 justify-center items-center">
-              {/* Tire Size Filter */}
               <div className="w-[70%] sm:w-64 relative">
                 <button
                   onClick={() => {
@@ -649,7 +636,6 @@ export default function Home() {
                 )}
               </div>
 
-              {/* Tire Model Filter */}
               <div className="w-[70%] sm:w-64 relative">
                 <button
                   onClick={() => {
@@ -698,7 +684,6 @@ export default function Home() {
                 )}
               </div>
 
-              {/* Clear Filters Button */}
               {anyTireFilterActive && (
                 <button
                   onClick={() => {
@@ -717,7 +702,6 @@ export default function Home() {
 
           <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-3">
             {isLoadingFilteredTires ? (
-              // Skeleton Loading Cards
               Array.from({ length: 6 }).map((_, index) => (
                 <div
                   key={`skeleton-${index}`}
@@ -734,7 +718,6 @@ export default function Home() {
                 </div>
               ))
             ) : (
-              // Actual Products
               filteredProducts.map((product) => (
                 <div
                   key={product._id}
@@ -785,11 +768,9 @@ export default function Home() {
           </div>
         </section>
 
-        {/* About Us Section */}
         <section className="max-w-7xl mx-auto px-6 py-12 mb-12">
           <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-3xl border-2 border-yellow-200 p-8 md:p-12 shadow-xl">
             <div className="grid md:grid-cols-3 gap-8">
-              {/* About Us */}
               <div className="space-y-4">
                 <h3 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
                   About Us
@@ -802,7 +783,6 @@ export default function Home() {
                 </p>
               </div>
 
-              {/* Our Vision */}
               <div className="space-y-4">
                 <h3 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
                   Our Vision
@@ -814,7 +794,6 @@ export default function Home() {
                 </p>
               </div>
 
-              {/* Our Mission */}
               <div className="space-y-4">
                 <h3 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
                   Our Mission
@@ -826,7 +805,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Legacy Badge */}
             <div className="mt-8 text-center">
               <div className="inline-block bg-white border-2 border-yellow-300 rounded-full px-6 py-3 shadow-lg">
                 <p className="text-xl md:text-2xl font-black text-gray-900">
@@ -841,7 +819,6 @@ export default function Home() {
         </section>
       </main>
 
-      {/* Cart Overlay */}
       {cartOpen && (
         <div
           className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-40"
@@ -849,7 +826,6 @@ export default function Home() {
         ></div>
       )}
 
-      {/* Cart Sidebar */}
       <div
         className={`fixed top-0 right-0 h-full w-full sm:w-96 bg-white shadow-2xl transform transition-transform duration-500 ease-out z-50 border-l-2 border-yellow-300 ${
           cartOpen ? "translate-x-0" : "translate-x-full"
@@ -947,7 +923,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Checkout Modal */}
       {checkoutModalOpen && (
         <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-auto overflow-hidden">
@@ -967,7 +942,6 @@ export default function Home() {
                 </button>
               </div>
 
-              {/* User Information Display */}
               <div className="mb-6 space-y-3 bg-yellow-50 p-4 rounded-lg border border-yellow-200">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Name</p>
@@ -984,7 +958,6 @@ export default function Home() {
               </div>
 
 
-              {/* Payment Method Tabs */}
               <div className="flex border-b border-gray-200 mb-6">
                 <button
                   className={`flex-1 py-3 font-medium text-center transition-colors ${
@@ -1008,7 +981,6 @@ export default function Home() {
                 </button>
               </div>
 
-              {/* Payment Details */}
               <div className="mb-6">
                 <h3 className="text-lg font-semibold mb-2">Amount to Pay</h3>
                 <p className="text-3xl font-bold text-yellow-600 mb-4">
@@ -1038,7 +1010,6 @@ export default function Home() {
                 )}
               </div>
 
-              {/* Reference Number Field */}
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   {paymentMethod === "UPI"
@@ -1054,7 +1025,6 @@ export default function Home() {
                 />
               </div>
 
-              {/* Place Order Button */}
               <button
                 disabled={!referenceNumber || orderProcessing}
                 onClick={async () => {
@@ -1118,10 +1088,8 @@ export default function Home() {
         </div>
       )}
 
-      {/* Footer */}
       <footer className="bg-gradient-to-r from-yellow-50 to-yellow-100 border-t border-yellow-200 mt-20">
         <div className="max-w-7xl mx-auto px-6 py-12 grid md:grid-cols-3 gap-8">
-          {/* Brand */}
           <div className="space-y-4">
             <h4 className="text-3xl font-bold bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
               Akash Petroleum
@@ -1134,7 +1102,6 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Contact */}
           <div className="space-y-4">
             <h5 className="text-xl font-bold text-gray-900">Contact Us</h5>
             <div className="flex items-center space-x-3">
@@ -1167,7 +1134,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Map */}
           <div className="space-y-4">
             <h5 className="text-xl font-bold text-gray-900">Find Us</h5>
             <a

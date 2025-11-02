@@ -10,7 +10,6 @@ const OnboardingPage = () => {
   const { user } = useUser();
   const router = useRouter();
   const hasProcessedRef = useRef(false);
-  console.log("Arrived")
 
   const emailArg = user?.primaryEmailAddress?.emailAddress
     ? { email: user.primaryEmailAddress.emailAddress }
@@ -52,7 +51,7 @@ const OnboardingPage = () => {
           });
           await new Promise((resolve) => setTimeout(resolve, 1000));
         } else {
-          console.log("");
+          
         }
 
         router.push('/');
