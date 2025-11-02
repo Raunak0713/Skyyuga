@@ -283,7 +283,7 @@ export default function Home() {
               rel="noopener noreferrer"
               title="Chat on WhatsApp"
             >
-              <Send className="w-6 h-6 text-green-500" />
+              <Image src={"/WhatsApp.svg"} alt="whatsapp" width={40} height={40}/>
             </a>
 
             {user ? (
@@ -1132,7 +1132,7 @@ export default function Home() {
           <div className="space-y-4">
             <h5 className="text-xl font-bold text-gray-900">Contact Us</h5>
             <div className="flex items-center space-x-3">
-              <Send className="w-6 h-6 text-green-500" />
+              <Image src={"/WhatsApp.svg"} alt="whatsapp" width={25} height={25}/>
               <a
                 href="https://wa.me/919825376646"
                 target="_blank"
