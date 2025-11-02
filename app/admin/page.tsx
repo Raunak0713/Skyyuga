@@ -36,7 +36,7 @@ const AdminPage = () => {
     title: "",
     description: "",
     imageUrl: [] as string[],
-    cost: 0,
+    cost: "",
     category: "",
     size: "",
     models: [] as string[],
@@ -104,12 +104,18 @@ const AdminPage = () => {
       return;
     }
     
+    const costValue = Number(newProduct.cost);
+    if (!newProduct.cost || costValue < 1) {
+      toast.error("Product cost must be at least ₹1");
+      return;
+    }
+    
     try {
       const productData = {
         title: newProduct.title,
         description: newProduct.description,
         imageUrl: newProduct.imageUrl,
-        cost: newProduct.cost,
+        cost: costValue,
         category: newProduct.category,
         ...(newProduct.category === "Tyres" && {
           tyreSize: newProduct.size,
@@ -123,7 +129,7 @@ const AdminPage = () => {
         title: "",
         description: "",
         imageUrl: [],
-        cost: 0,
+        cost: "",
         category: "",
         size: "",
         models: [],
@@ -188,13 +194,19 @@ const AdminPage = () => {
       return;
     }
     
+    const costValue = Number(selectedProduct.cost);
+    if (!selectedProduct.cost || costValue < 1) {
+      toast.error("Product cost must be at least ₹1");
+      return;
+    }
+    
     try {
       const updateData = {
         productId: selectedProduct._id,
         title: selectedProduct.title,
         description: selectedProduct.description,
         imageUrl: selectedProduct.imageUrl,
-        cost: selectedProduct.cost,
+        cost: costValue,
         category: selectedProduct.category,
         ...(selectedProduct.category === "Tyres" && {
           tyreSize: selectedProduct.tyreSize || "",
@@ -790,12 +802,14 @@ const AdminPage = () => {
                 <input
                   type="number"
                   value={newProduct.cost}
-                  onChange={(e) => setNewProduct({ ...newProduct, cost: Number(e.target.value) })}
+                  onChange={(e) => setNewProduct({ ...newProduct, cost: e.target.value })}
                   className="w-full p-2.5 border-2 border-yellow-200 rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all text-sm"
-                  placeholder="0"
+                  placeholder="Enter product cost"
                   required
-                  min="0"
+                  min="1"
+                  step="0.01"
                 />
+                <p className="text-xs text-gray-500 mt-1">Minimum cost: ₹1</p>
               </div>
 
               <div>
@@ -865,7 +879,7 @@ const AdminPage = () => {
 
               <button
                 type="submit"
-                disabled={isUploading || newProduct.imageUrl.length === 0 || (newProduct.category === "Tyres" && newProduct.models.length === 0)}
+                disabled={isUploading || newProduct.imageUrl.length === 0 || !newProduct.cost || Number(newProduct.cost) < 1 || (newProduct.category === "Tyres" && newProduct.models.length === 0)}
                 className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 py-3 rounded-xl hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 shadow-lg hover:shadow-yellow-500/50 font-bold text-base transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isUploading ? "Uploading Image..." : "Create Product"}
@@ -1025,12 +1039,14 @@ const AdminPage = () => {
                 <input
                   type="number"
                   value={selectedProduct.cost}
-                  onChange={(e) => setSelectedProduct({ ...selectedProduct, cost: Number(e.target.value) })}
+                  onChange={(e) => setSelectedProduct({ ...selectedProduct, cost: e.target.value })}
                   className="w-full p-2.5 border-2 border-yellow-200 rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all text-sm"
-                  placeholder="0"
+                  placeholder="Enter product cost"
                   required
-                  min="0"
+                  min="1"
+                  step="0.01"
                 />
+                <p className="text-xs text-gray-500 mt-1">Minimum cost: ₹1</p>
               </div>
 
               <div>
@@ -1099,7 +1115,7 @@ const AdminPage = () => {
 
               <button
                 type="submit"
-                disabled={isEditUploading || !selectedProduct.imageUrl || selectedProduct.imageUrl.length === 0 || (selectedProduct.category === "Tyres" && (!selectedProduct.tyreModel || selectedProduct.tyreModel.length === 0))}
+                disabled={isEditUploading || !selectedProduct.imageUrl || selectedProduct.imageUrl.length === 0 || !selectedProduct.cost || Number(selectedProduct.cost) < 1 || (selectedProduct.category === "Tyres" && (!selectedProduct.tyreModel || selectedProduct.tyreModel.length === 0))}
                 className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 py-3 rounded-xl hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 shadow-lg hover:shadow-yellow-500/50 font-bold text-base transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isEditUploading ? "Uploading Image..." : "Update Product"}
