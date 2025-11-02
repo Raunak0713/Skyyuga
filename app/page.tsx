@@ -27,6 +27,7 @@ export default function Home() {
   // Tire filter states
   const [selectedTireSize, setSelectedTireSize] = useState<string | undefined>("");
   const [selectedTireModel, setSelectedTireModel] = useState<string>("");
+  const [modelSearchQuery, setModelSearchQuery] = useState<string>("");
   const [sizeDropdownOpen, setSizeDropdownOpen] = useState(false);
   const [modelDropdownOpen, setModelDropdownOpen] = useState(false);
 
@@ -116,6 +117,11 @@ export default function Home() {
   
   // Use allTireData for filter options to prevent disappearing
   const filterOptions = allTireData || { uniqueSizes: [], uniqueModels: [] };
+  
+  // Filter models based on search query
+  const filteredModels = filterOptions.uniqueModels.filter(model =>
+    model.toLowerCase().includes(modelSearchQuery.toLowerCase())
+  );
   
   // Check if we're loading filtered tire data
   const isLoadingFilteredTires = showTireFilters && anyTireFilterActive && !tireData;
@@ -216,7 +222,7 @@ export default function Home() {
               rel="noopener noreferrer"
               title="Chat on WhatsApp"
             >
-              <Send className="w-6 h-6 text-green-500 hover:text-green-600" />
+              <Image src={"/WhatsApp.svg"} alt="whatsapp" width={40} height={40}/>
             </a>
             <a href="mailto:akashpetroleum086@gmail.com" title="Send Email">
               <Mail className="w-6 h-6 text-blue-500 hover:text-blue-600" />
@@ -656,30 +662,50 @@ export default function Home() {
                 </button>
                 
                 {modelDropdownOpen && (
-                  <div className="absolute z-50 w-full mt-2 bg-white border-2 border-yellow-300 rounded-2xl shadow-2xl max-h-60 overflow-y-auto">
-                    <div
-                      onClick={() => {
-                        setSelectedTireModel("");
-                        setModelDropdownOpen(false);
-                      }}
-                      className="px-6 py-3 hover:bg-yellow-50 cursor-pointer font-semibold text-gray-900 transition-colors border-b border-yellow-100"
-                    >
-                      All Models
+                  <div className="absolute z-50 w-full mt-2 bg-white border-2 border-yellow-300 rounded-2xl shadow-2xl max-h-60 overflow-hidden flex flex-col">
+                    <div className="p-3 border-b border-yellow-200">
+                      <input
+                        type="text"
+                        value={modelSearchQuery}
+                        onChange={(e) => setModelSearchQuery(e.target.value)}
+                        placeholder="Search models..."
+                        className="w-full px-4 py-2 border-2 border-yellow-200 rounded-full focus:outline-none focus:border-yellow-400 focus:ring-2 focus:ring-yellow-300 transition-all"
+                        onClick={(e) => e.stopPropagation()}
+                      />
                     </div>
-                    {filterOptions.uniqueModels.map((model) => (
+                    <div className="overflow-y-auto">
                       <div
-                        key={model}
                         onClick={() => {
-                          setSelectedTireModel(model);
+                          setSelectedTireModel("");
+                          setModelSearchQuery("");
                           setModelDropdownOpen(false);
                         }}
-                        className={`px-6 py-3 hover:bg-yellow-50 cursor-pointer font-semibold transition-colors border-b border-yellow-100 last:border-b-0 ${
-                          selectedTireModel === model ? 'bg-yellow-100 text-yellow-700' : 'text-gray-900'
-                        }`}
+                        className="px-6 py-3 hover:bg-yellow-50 cursor-pointer font-semibold text-gray-900 transition-colors border-b border-yellow-100"
                       >
-                        {model}
+                        All Models
                       </div>
-                    ))}
+                      {filteredModels.length > 0 ? (
+                        filteredModels.map((model) => (
+                          <div
+                            key={model}
+                            onClick={() => {
+                              setSelectedTireModel(model);
+                              setModelSearchQuery("");
+                              setModelDropdownOpen(false);
+                            }}
+                            className={`px-6 py-3 hover:bg-yellow-50 cursor-pointer font-semibold transition-colors border-b border-yellow-100 last:border-b-0 ${
+                              selectedTireModel === model ? 'bg-yellow-100 text-yellow-700' : 'text-gray-900'
+                            }`}
+                          >
+                            {model}
+                          </div>
+                        ))
+                      ) : (
+                        <div className="px-6 py-3 text-gray-500 text-center">
+                          No models found
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
@@ -689,6 +715,7 @@ export default function Home() {
                   onClick={() => {
                     setSelectedTireSize("");
                     setSelectedTireModel("");
+                    setModelSearchQuery("");
                     setSizeDropdownOpen(false);
                     setModelDropdownOpen(false);
                   }}

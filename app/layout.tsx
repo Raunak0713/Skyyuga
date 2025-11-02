@@ -19,6 +19,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Skyyuga",
   description: "Place for all your car needs",
+  icons : {
+    icon : "/logo.ico"
+  }
 };
 
 export default function RootLayout({
