@@ -201,7 +201,7 @@ export default function Home() {
       <header className="fixed top-0 w-full z-50 backdrop-blur-xl bg-white/80 border-b border-yellow-200">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
           <h1 className="text-2xl gap-x-2 flex md:text-3xl font-bold bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
-            Skyyuga
+            <span className="hidden md:block">Skyyuga</span>
             <Image src={"/Logo.png"} height={25} width={40} alt="logo"/>
           </h1>
 
@@ -276,6 +276,9 @@ export default function Home() {
             >
               <Image src={"/WhatsApp.svg"} alt="whatsapp" width={40} height={40}/>
             </a>
+            <a href="mailto:akashpetroleum086@gmail.com" title="Send Email">
+              <Mail className="w-6 h-6 text-blue-500 hover:text-blue-600" />
+            </a>
 
             {user ? (
               <UserButton />
@@ -293,9 +296,9 @@ export default function Home() {
               className="relative bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 p-2 rounded-full"
             >
               {mobileMenuOpen ? (
-                <X className="w-6 h-6" />
+                <X className="w-5 h-5" />
               ) : (
-                <Menu className="w-6 h-6" />
+                <Menu className="w-5 h-5" />
               )}
               {cartItems.length > 0 && (
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">

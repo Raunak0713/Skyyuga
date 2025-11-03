@@ -3,16 +3,18 @@ import React, { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useUser } from "@clerk/nextjs";
-import { Users, Package, ShoppingBag, Plus, X, Search, Pencil, Mail, Phone, Calendar, Check, Upload, Trash2 } from "lucide-react";
+import { Users, Package, ShoppingBag, Plus, X, Search, Pencil, Mail, Phone, Calendar, Check, Upload, Trash2, MoveLeft } from "lucide-react";
 import { Id } from "@/convex/_generated/dataModel";
 import { toast } from "sonner";
 import { UploadButton } from "@/lib/uploadthing";
+import { useRouter } from "next/navigation";
 
 type OrderStatus = "PENDING" | "ACCEPTED" | "REJECTED" | "DELIVERING" | "DELIVERED";
 
 const AdminPage = () => {
   const { user } = useUser();
   const email = user?.emailAddresses[0]?.emailAddress!;
+  const router = useRouter()
 
   const allUsers = useQuery(api.user.getAllUsers, { email });
   const allOrders = useQuery(api.order.getAllOrders, { email });
@@ -305,6 +307,10 @@ const AdminPage = () => {
       </header>
 
       <div className="relative z-10 max-w-7xl mx-auto px-3 sm:px-4 md:px-6 mt-4 sm:mt-6 md:mt-8">
+        <button className="flex bg-yellow-400 p-2 rounded-2xl gap-x-3 transition-all duration-300 transform hover:scale-105 font-semibold mb-7" onClick={() => router.push("/")}>
+          <MoveLeft />
+          Back
+        </button>
         <div className="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-3 md:gap-4 mb-4 sm:mb-6 md:mb-8">
           {tabs.map((tab) => {
             const Icon = tab.icon;
