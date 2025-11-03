@@ -100,6 +100,10 @@ const ProductPage = () => {
                                         >
                                             <ChevronRight className="w-6 h-6 text-gray-700 group-hover/btn:text-yellow-600" />
                                         </button>
+
+                                        <div className='absolute top-4 right-4 p-2 font-semibold bg-yellow-400 rounded-2xl scale-75 md:scale-100'>
+                                            {product.tyreSize}
+                                        </div>
                                         
                                         {/* Image Counter */}
                                         <div className="absolute bottom-4 right-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm font-semibold">
@@ -154,6 +158,41 @@ const ProductPage = () => {
                         <p className="text-gray-600 leading-relaxed text-lg">
                             {product.description}
                         </p>
+
+                        {/* Compatible Models Section */}
+                        {product.tyreModel && product.tyreModel.length > 0 && (
+                            <div className="relative overflow-hidden bg-gradient-to-br from-yellow-50 via-amber-50 to-yellow-100 rounded-2xl p-6 border-2 border-yellow-300 shadow-lg hover:shadow-xl transition-all duration-300">
+                                {/* Animated background gradient */}
+                                <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/10 via-amber-400/10 to-yellow-400/10 animate-pulse"></div>
+                                
+                                <div className="relative">
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <div className="flex gap-1">
+                                            <span className="w-2 h-2 bg-yellow-500 rounded-full animate-bounce"></span>
+                                            <span className="w-2 h-2 bg-amber-500 rounded-full animate-bounce" style={{animationDelay: '0.1s'}}></span>
+                                            <span className="w-2 h-2 bg-yellow-600 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></span>
+                                        </div>
+                                        <h3 className="text-base font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-700 to-amber-700">
+                                            🏎️ Perfect Fit For These Models
+                                        </h3>
+                                    </div>
+                                    <div className="flex flex-wrap gap-2.5">
+                                        {product.tyreModel.map((model, index) => (
+                                            <span 
+                                                key={index}
+                                                className="group relative px-5 py-2.5 bg-white rounded-xl text-sm font-bold text-gray-800 border-2 border-yellow-300 shadow-md hover:shadow-xl hover:scale-105 hover:-translate-y-0.5 transition-all duration-300 cursor-default"
+                                                style={{
+                                                    animationDelay: `${index * 0.1}s`
+                                                }}
+                                            >
+                                                <span className="relative z-10">{model}</span>
+                                                <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/0 via-yellow-400/20 to-yellow-400/0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
                         <div className="space-y-3">
                             <label className="text-sm font-semibold text-gray-700">Quantity</label>

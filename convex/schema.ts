@@ -43,6 +43,7 @@ export default defineSchema({
         paymentMethod : paymentValidator,
         referenceNumber : v.number(),
         name : v.string(),
+        address  :v.string(),
         email : v.string(),
         status : orderStatusValidator,
         contactNumber : v.string(),

@@ -4,7 +4,7 @@ import { api } from '@/convex/_generated/api';
 import { useUser } from '@clerk/nextjs';
 import { useQuery } from 'convex/react';
 import React, { useState } from 'react';
-import { ArrowLeft, Package, Calendar, CreditCard, Phone, Mail } from 'lucide-react';
+import { ArrowLeft, Package, Calendar, CreditCard, Phone, Mail, MapPin } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Id } from '@/convex/_generated/dataModel';
 
@@ -152,6 +152,9 @@ const OrderPage = () => {
                                                                             <span className='font-semibold'>Phone:</span>
                                                                             {order.contactNumber}
                                                                         </p>
+                                                                        <p className="text-sm text-gray-600 flex items-start gap-2">
+                                                                            <span><span className="font-semibold">Address:</span> {order.address}</span>
+                                                                        </p>
                                                                     </div>
                                                                     <div className="space-y-2">
                                                                         <h4 className="font-bold text-gray-900 flex items-center gap-2">
@@ -188,20 +191,20 @@ const OrderPage = () => {
                             {AllUserOrders.map((order: any) => (
                                 <div key={order._id} className="backdrop-blur-xl bg-white/70 rounded-2xl shadow-xl border border-yellow-200/50 overflow-hidden">
                                     <div className="bg-gradient-to-r from-yellow-400 to-amber-500 p-4">
-                                        <div className="flex justify-between items-start">
+                                        <div className="flex justify-between items-start mb-2">
                                             <div>
                                                 <p className="text-xs font-semibold text-gray-900 uppercase mb-1">Order ID</p>
-                                                <p className="font-mono font-bold text-gray-900">#{order._id}</p>
+                                                <p className="font-mono font-bold text-gray-900 text-sm">#{order._id}</p>
                                             </div>
-                                            <div className={`rounded-2xl text-center text-xs px-3 py-1 font-semibold ${
-                                                order.status === "PENDING" ? "bg-yellow-100 text-yellow-700" :
-                                                order.status === "ACCEPTED" ? "bg-blue-100 text-blue-700" :
-                                                order.status === "DELIVERING" ? "bg-purple-100 text-purple-700" :
-                                                order.status === "DELIVERED" ? "bg-green-100 text-green-700" :
-                                                "bg-red-100 text-red-700"
-                                            }`}>
-                                                {order.status}
-                                            </div>
+                                        </div>
+                                        <div className={`inline-block rounded-2xl text-center text-xs px-3 py-1 font-semibold ${
+                                            order.status === "PENDING" ? "bg-yellow-100 text-yellow-700" :
+                                            order.status === "ACCEPTED" ? "bg-blue-100 text-blue-700" :
+                                            order.status === "DELIVERING" ? "bg-purple-100 text-purple-700" :
+                                            order.status === "DELIVERED" ? "bg-green-100 text-green-700" :
+                                            "bg-red-100 text-red-700"
+                                        }`}>
+                                            {order.status}
                                         </div>
                                     </div>
                                     
@@ -248,9 +251,9 @@ const OrderPage = () => {
                                                     </h4>
                                                     <p className="text-sm text-gray-600"><span className="font-semibold">Name:</span> {order.name}</p>
                                                     <p className="text-sm text-gray-600"><span className="font-semibold">Email:</span> {order.email}</p>
-                                                    <p className="text-sm text-gray-600 flex items-center gap-2">
-                                                        <Phone className="w-4 h-4" />
-                                                        {order.contactNumber}
+                                                     <p className="text-sm text-gray-600"><span className="font-semibold">Phone:</span> {order.contactNumber}</p>
+                                                    <p className="text-sm text-gray-600 flex items-start gap-2">
+                                                        <span><span className="font-semibold">Address:</span> {order.address}</span>
                                                     </p>
                                                 </div>
                                                 <div className="space-y-2">
@@ -301,17 +304,19 @@ const ProductItem = ({ productId, quantity }: { productId: Id<"products">, quant
     }
 
     const firstImage = Array.isArray(product.imageUrl) ? product.imageUrl[0] : product.imageUrl;
+    const truncatedTitle = product.title.length > 30 ? product.title.substring(0, 30) + '...' : product.title;
+    const truncatedDescription = product.description.length > 40 ? product.description.substring(0, 40) + '...' : product.description;
 
     return (
         <div className="flex items-center gap-3 bg-white p-3 rounded-lg border border-yellow-200 hover:border-yellow-300 transition-colors">
             <img 
                 src={firstImage} 
                 alt={product.title}
-                className="w-16 h-16 object-cover rounded-md"
+                className="w-16 h-16 object-cover rounded-md flex-shrink-0"
             />
             <div className="flex-1 min-w-0">
-                <h5 className="font-semibold text-gray-900 text-sm truncate">{product.title}</h5>
-                <p className="text-xs text-gray-600 truncate">{product.description}</p>
+                <h5 className="font-semibold text-gray-900 text-sm" title={product.title}>{truncatedTitle}</h5>
+                <p className="text-xs text-gray-600" title={product.description}>{truncatedDescription}</p>
                 <div className="flex items-center gap-2 mt-1">
                     <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full font-medium">
                         {product.category}
@@ -319,7 +324,7 @@ const ProductItem = ({ productId, quantity }: { productId: Id<"products">, quant
                     <span className="text-xs text-gray-600">Qty: {quantity}</span>
                 </div>
             </div>
-            <div className="text-right">
+            <div className="text-right flex-shrink-0">
                 <p className="text-sm font-bold text-yellow-600">₹{product.cost}</p>
                 <p className="text-xs text-gray-500">Total: ₹{product.cost * quantity}</p>
             </div>

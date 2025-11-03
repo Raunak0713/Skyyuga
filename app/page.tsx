@@ -4,7 +4,7 @@ import { api } from "@/convex/_generated/api";
 import { useQuery, useMutation } from "convex/react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { Mail, Send, ShoppingCart, Package, Menu, X, Phone} from "lucide-react";
+import { Mail, ShoppingCart, Package, Menu, X, Phone} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/cartContext";
 import { UserButton, useUser } from "@clerk/nextjs";
@@ -20,6 +20,7 @@ export default function Home() {
   const [userContact, setUserContact] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [phoneModalOpen, setPhoneModalOpen] = useState(false);
+  const [address, setAddress] = useState("")
   const [phoneNumber, setPhoneNumber] = useState("");
   const [orderProcessing, setOrderProcessing] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -951,9 +952,9 @@ export default function Home() {
         </div>
       </div>
 
-      {checkoutModalOpen && (
-        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-auto overflow-hidden">
+     {checkoutModalOpen && (
+        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50  flex items-center justify-center p-2 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[95%] scale-[85%] md:scale-100 sm:max-w-md mx-auto overflow-hidden my-4">
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-900">
@@ -983,7 +984,19 @@ export default function Home() {
                   <p className="text-sm font-medium text-gray-600">Phone</p>
                   <p className="text-gray-900 font-semibold">{phone}</p>
                 </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Address</p>
+                  <input
+                    type="text"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    placeholder="Enter your delivery address"
+                    className="w-full font-semibold p-2.5 mt-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all"
+                  />
+                </div>
               </div>
+
+              
 
 
               <div className="flex border-b border-gray-200 mb-6">
@@ -1027,7 +1040,7 @@ export default function Home() {
                     <h4 className="text-lg font-semibold mb-2">Bank Details</h4>
                     <div className="bg-gray-100 p-3 rounded-lg space-y-2">
                       <p className="font-mono text-gray-800">
-                        Account Number:{" "}
+                        Account No:{" "}
                         <span className="font-bold">072605002943</span>
                       </p>
                       <p className="font-mono text-gray-800">
@@ -1070,6 +1083,7 @@ export default function Home() {
                       totalCost: total,
                       paymentMethod: paymentMethod,
                       referenceNumber: referenceNumber,
+                      address : address,
                       name: username,
                       email: email,
                       contactNumber: phone,
@@ -1104,7 +1118,7 @@ export default function Home() {
                   }
                 }}
                 className={`w-full py-3 px-4 rounded-lg text-white font-bold text-lg transition-all ${
-                  referenceNumber && !orderProcessing
+                  referenceNumber && !orderProcessing && address
                     ? "bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 cursor-pointer transform hover:scale-105"
                     : "bg-gray-300 cursor-not-allowed"
                 }`}
