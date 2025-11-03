@@ -4,7 +4,7 @@ import { api } from "@/convex/_generated/api";
 import { useQuery, useMutation } from "convex/react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { Mail, ShoppingCart, Package, Menu, X, Phone} from "lucide-react";
+import { Mail, ShoppingCart, Package, Menu, X, Phone, User} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/cartContext";
 import { UserButton, useUser } from "@clerk/nextjs";
@@ -347,7 +347,7 @@ export default function Home() {
                   }}
                   className="w-full flex items-center gap-2 bg-yellow-50 hover:bg-yellow-100 text-gray-900 px-4 py-3 rounded-lg transition-colors font-semibold"
                 >
-                  <Package className="w-5 h-5" />
+                  <User className="w-5 h-5" />
                   Admin
                 </button>
               )}
@@ -757,7 +757,7 @@ export default function Home() {
                           {product.category}
                         </span>
                         {product.category === "Tyres" && product.tyreSize && (
-                          <span className="bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">
+                          <span className="bg-yellow-400 text-black text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">
                             {product.tyreSize}
                           </span>
                         )}
