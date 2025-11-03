@@ -5,7 +5,7 @@ import { Id } from '@/convex/_generated/dataModel';
 import { useQuery } from 'convex/react';
 import { useParams, useRouter } from 'next/navigation';
 import React, { useState } from 'react';
-import { ShoppingCart, Shield, Truck, RotateCcw, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ShoppingCart, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useCart } from '@/context/cartContext';
 import { toast } from 'sonner';
 
@@ -80,7 +80,7 @@ const ProductPage = () => {
                                 <img 
                                     src={images[currentImageIndex]} 
                                     alt={`${product.title} - Image ${currentImageIndex + 1}`}
-                                    className="w-full h-[400px] lg:h-[600px] object-cover"
+                                    className="w-full h-[400px] lg:h-[600px] object-contain"
                                 />
                                 
                                 {/* Navigation Arrows - Only show if multiple images */}
@@ -126,7 +126,7 @@ const ProductPage = () => {
                                         <img 
                                             src={img} 
                                             alt={`${product.title} thumbnail ${index + 1}`}
-                                            className="w-full h-20 object-cover"
+                                            className="w-full h-20 object-contain"
                                         />
                                     </button>
                                 ))}
