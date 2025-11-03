@@ -25,8 +25,14 @@ const ProductPage = () => {
         return (
             <div className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-yellow-50 flex items-center justify-center">
                 <div className="text-center space-y-4">
-                    <div className="w-16 h-16 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
-                    <p className="text-gray-600 text-lg">Loading luxury...</p>
+                    <div className="relative mx-auto w-24 h-24">
+                        <img 
+                            src="/tyre.png" 
+                            alt="Loading" 
+                            className="w-full h-full animate-spin"
+                            style={{ animationDuration: '1.5s' }}
+                        />
+                    </div>
                 </div>
             </div>
         );
