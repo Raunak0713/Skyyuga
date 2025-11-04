@@ -1202,7 +1202,7 @@ export default function Home() {
                     <select
                       value={state}
                       onChange={(e) => setState(e.target.value)}
-                      className="w-full font-semibold p-2.5 mt-1 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all"
+                      className="w-full font-semibold p-2.5 mt-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 bg-none focus:border-yellow-500 transition-all"
                     >
                       <option value="">Select your state</option>
                       {statesOfIndia.map((s) => (
