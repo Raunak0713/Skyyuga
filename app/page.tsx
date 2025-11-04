@@ -1151,7 +1151,7 @@ export default function Home() {
 
       {checkoutModalOpen && (
         <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-2 overflow-y-auto">
-          <div className="bg-white rounded-2xl shadow-2xl w-full  max-w-[95%] scale-[65%] md:scale-100 sm:max-w-md mx-auto overflow-hidden my-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full  max-w-[95%] scale-[85%] md:scale-100 sm:max-w-md mx-auto overflow-hidden my-4">
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-900">
