@@ -51,6 +51,8 @@ export const updateProduct = mutation({
     imageUrl: v.optional(v.array(v.string())),
     cost: v.optional(v.number()),
     category: v.optional(v.string()),
+    tyreModel: v.optional(v.array(v.string())),
+    tyreSize: v.optional(v.string())
   },
   handler: async (ctx, args) => {
     const product = await ctx.db.get(args.productId);
@@ -62,6 +64,8 @@ export const updateProduct = mutation({
       imageUrl: args.imageUrl ?? product.imageUrl,
       cost: args.cost ?? product.cost,
       category: args.category ?? product.category,
+      tyreModel: args.tyreModel ?? product.tyreModel,
+      tyreSize: args.tyreSize ?? product.tyreSize
     });
   },
 });

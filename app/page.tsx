@@ -212,7 +212,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
           <h1 className="text-2xl gap-x-2 flex md:text-3xl font-bold bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
             <span className="hidden md:block">Skyyuga</span>
-            <Image src={"/Logo.png"} height={25} width={40} alt="logo"/>
+            <Image src={"/navlogo.png"} height={25} width={40} alt="logo"/>
           </h1>
 
 
