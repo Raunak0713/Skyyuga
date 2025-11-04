@@ -22,6 +22,8 @@ import { Id } from "@/convex/_generated/dataModel";
 import { toast } from "sonner";
 import { UploadButton } from "@/lib/uploadthing";
 import { useRouter } from "next/navigation";
+import { utapi } from "@/lib/utapi";
+import { deleteUploadthingFile } from "../actions/deleteImages";
 
 type OrderStatus =
   | "PENDING"
@@ -43,7 +45,7 @@ const AdminPage = () => {
   const updateOrderStatus = useMutation(api.order.updateOrderStatus);
   const updateProduct = useMutation(api.product.updateProduct);
   const deleteProduct = useMutation(api.product.deleteProduct);
-
+  
   const [activeTab, setActiveTab] = useState("users");
   const [searchTerm, setSearchTerm] = useState("");
   const [addProductModal, setAddProductModal] = useState(false);
@@ -53,6 +55,11 @@ const AdminPage = () => {
   const [productToDelete, setProductToDelete] = useState<Id<"products"> | null>(
     null
   );
+  const product = useQuery(
+    api.product.getProductById,
+    productToDelete ? { id: productToDelete } : "skip"
+  );
+
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [newProduct, setNewProduct] = useState({
@@ -308,17 +315,30 @@ const AdminPage = () => {
   };
 
   const confirmDelete = async () => {
-    if (!productToDelete) return;
+  if (!productToDelete || !product) return;
 
-    try {
-      await deleteProduct({ productId: productToDelete });
-      toast.success("Product deleted successfully!");
-      setDeleteConfirmModal(false);
-      setProductToDelete(null);
-    } catch (err) {
-      toast.error("Failed to delete product.");
+  try {
+    const fileKeys =
+      product.imageUrl
+        ?.map((url) => url.split("/").pop())
+        .filter((key): key is string => typeof key === "string" && key.length > 0) ?? [];
+
+    // 🗑 Delete product in Convex
+    await deleteProduct({ productId: productToDelete });
+
+    // 🧹 Delete image from UploadThing via server action
+    if (fileKeys.length > 0) {
+      await deleteUploadthingFile(fileKeys);
     }
-  };
+
+    toast.success("Product deleted successfully!");
+    setDeleteConfirmModal(false);
+    setProductToDelete(null);
+  } catch (err) {
+    console.error("Error deleting product:", err);
+    toast.error("Failed to delete product.");
+  }
+};
 
   const toggleStatusFilter = (status: OrderStatus) => {
     const newFilters = new Set(statusFilters);
