@@ -1151,8 +1151,8 @@ export default function Home() {
               Akash Petroleum
             </h4>
             <p className="text-gray-700 leading-relaxed">
-              Famous Market, Digjam Circul, Opp. JMC Water Tank & HP Petrol
-              Station,
+              Famous Market, Digjam Circle, Opp. JMC Water Tank & HP Petrol
+              Station, Gujarat, India
               <br />
               Nr. Hotel Lemon Tree, Below Over Bridge, Jamnagar. 361006.
             </p>
