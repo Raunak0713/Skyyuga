@@ -6,6 +6,12 @@ export const paymentValidator = v.union(
     v.literal("Bank Transfer")
 )
 
+export const GSTValidator = v.union(
+    v.literal("5"),
+    v.literal("18"),
+    v.literal("40"),
+)
+
 export const orderStatusValidator = v.union(
     v.literal("PENDING"),
     v.literal("ACCEPTED"),
@@ -18,7 +24,7 @@ export default defineSchema({
     users : defineTable({
         name : v.string(),
         email : v.string(),
-    phone : v.optional(v.string())
+        phone : v.optional(v.string())
     }),
 
     products : defineTable({
@@ -27,6 +33,8 @@ export default defineSchema({
         imageUrl : v.array(v.string()),
         cost : v.number(),
         category : v.string(),
+        discount : v.number(),
+        GSTRate : GSTValidator,
         tyreSize : v.optional(v.string()),
         tyreModel : v.optional(v.array(v.string()))
     }),

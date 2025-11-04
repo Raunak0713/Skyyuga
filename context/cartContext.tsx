@@ -8,11 +8,22 @@ interface CartItem {
   cost: number;
   quantity: number;
   imageUrl: string;
+  discount?: number;
+  GSTRate?: number | string;
+  category?: string;
 }
 
 interface CartContextType {
   cartItems: CartItem[];
-  addToCart: (product: { _id: string; title: string; cost: number; imageUrl: string; category?: string }) => void;
+  addToCart: (product: { 
+    _id: string; 
+    title: string; 
+    cost: number; 
+    imageUrl: string; 
+    category?: string;
+    discount?: number;
+    GSTRate?: number | string;
+  }) => void;
   updateQuantity: (_id: string, quantity: number) => void;
   removeFromCart: (_id: string) => void;
   clearCart: () => void;
@@ -24,7 +35,15 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export function CartProvider({ children }: { children: ReactNode }) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
-  const addToCart = (product: { _id: string; title: string; cost: number; imageUrl: string; category?: string }) => {
+  const addToCart = (product: { 
+    _id: string; 
+    title: string; 
+    cost: number; 
+    imageUrl: string; 
+    category?: string;
+    discount?: number;
+    GSTRate?: number | string;
+  }) => {
     setCartItems((prev) => {
       const exists = prev.find((item) => item._id === product._id);
       if (exists) {
@@ -42,6 +61,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
           cost: product.cost,
           imageUrl: product.imageUrl,
           quantity: 1,
+          category: product.category,
+          discount: product.discount,
+          GSTRate: product.GSTRate,
         },
       ];
     });
@@ -67,7 +89,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setCartItems([]);
   };
 
-  const total = cartItems.reduce((sum, item) => sum + item.cost * item.quantity, 0);
+  const total = cartItems.reduce((sum, item) => {
+    const discountedPrice = item.cost - (item.discount || 0);
+    return sum + discountedPrice * item.quantity;
+  }, 0);
+
+  const getGSTRateAsNumber = (rate?: number | string): number => {
+    if (typeof rate === 'string') {
+      return parseFloat(rate);
+    }
+    return rate || 0;
+  };
 
   return (
     <CartContext.Provider value={{ cartItems, addToCart, updateQuantity, removeFromCart, clearCart, total }}>

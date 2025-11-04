@@ -5,7 +5,7 @@ import { Id } from '@/convex/_generated/dataModel';
 import { useQuery } from 'convex/react';
 import { useParams, useRouter } from 'next/navigation';
 import React, { useState } from 'react';
-import { ShoppingCart, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ShoppingCart, ArrowLeft, ChevronLeft, ChevronRight, Tag } from 'lucide-react';
 import { useCart } from '@/context/cartContext';
 import { toast } from 'sonner';
 
@@ -41,6 +41,10 @@ const ProductPage = () => {
     const images = Array.isArray(product.imageUrl) ? product.imageUrl : [product.imageUrl];
     const totalImages = images.length;
 
+    const hasDiscount = (product.discount || 0) > 0;
+    const discountedPrice = product.cost - (product.discount || 0);
+    const discountPercentage = product.cost > 0 ? Math.round((product.discount || 0) / product.cost * 100) : 0;
+
     const handleAddToCart = () => {
         for (let i = 0; i < quantity; i++) {
             addToCart({
@@ -48,7 +52,9 @@ const ProductPage = () => {
                 title: product.title,
                 cost: product.cost,
                 imageUrl: images[0],
-                category: product.category
+                category: product.category,
+                discount: product.discount,
+                GSTRate: product.GSTRate
             });
         }
         toast.success(`Added ${quantity} ${quantity > 1 ? 'items' : 'item'} to cart!`);
@@ -75,11 +81,9 @@ const ProductPage = () => {
             </div>
 
             <div className="container mx-auto px-4 py-8 lg:py-16">
-                <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
+                <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-start">
                     
-                    {/* Image Gallery Section */}
-                    <div className="space-y-4">
-                        {/* Main Image */}
+                    <div className={totalImages > 1 ? "space-y-4" : ""}>
                         <div className="relative group">
                             <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/20 to-amber-400/20 rounded-3xl blur-3xl group-hover:blur-2xl transition-all duration-500"></div>
                             <div className="relative bg-white rounded-3xl shadow-2xl overflow-hidden border border-yellow-100">
@@ -89,7 +93,19 @@ const ProductPage = () => {
                                     className="w-full h-[400px] lg:h-[600px] object-contain"
                                 />
                                 
-                                {/* Navigation Arrows - Only show if multiple images */}
+                                {hasDiscount && (
+                                    <div className="absolute top-4 scale-75 md:scale-100 left-4 bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2 animate-pulse">
+                                        <Tag className="w-4 h-4" />
+                                        <span className="font-bold text-lg">{discountPercentage}% OFF</span>
+                                    </div>
+                                )}
+
+                                {product.tyreSize && (
+                                    <div className='absolute top-4 right-4 p-2 font-semibold bg-yellow-400 rounded-2xl scale-75 md:scale-100'>
+                                        {product.tyreSize}
+                                    </div>
+                                )}
+                                
                                 {totalImages > 1 && (
                                     <>
                                         <button
@@ -106,12 +122,7 @@ const ProductPage = () => {
                                         >
                                             <ChevronRight className="w-6 h-6 text-gray-700 group-hover/btn:text-yellow-600" />
                                         </button>
-
-                                        <div className='absolute top-4 right-4 p-2 font-semibold bg-yellow-400 rounded-2xl scale-75 md:scale-100'>
-                                            {product.tyreSize}
-                                        </div>
                                         
-                                        {/* Image Counter */}
                                         <div className="absolute bottom-4 right-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm font-semibold">
                                             {currentImageIndex + 1} / {totalImages}
                                         </div>
@@ -120,7 +131,6 @@ const ProductPage = () => {
                             </div>
                         </div>
 
-                        {/* Thumbnail Gallery - Only show if multiple images */}
                         {totalImages > 1 && (
                             <div className="grid grid-cols-4 gap-3">
                                 {images.map((img, index) => (
@@ -144,7 +154,6 @@ const ProductPage = () => {
                         )}
                     </div>
 
-                    {/* Product Details Section */}
                     <div className="space-y-6">
                         <div className="space-y-2">
                             <p className="text-yellow-600 font-semibold tracking-wider uppercase text-sm">
@@ -156,19 +165,36 @@ const ProductPage = () => {
                         </div>
 
                         <div className="py-4 border-y border-yellow-100">
-                            <p className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-600 to-amber-600">
-                                ₹ {product.cost.toLocaleString()}
-                            </p>
+                            {hasDiscount ? (
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-4">
+                                        <p className="text-3xl font-bold text-gray-400 line-through">
+                                            ₹ {product.cost.toLocaleString()}
+                                        </p>
+                                        <span className="bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm font-bold">
+                                            Save ₹{(product.discount || 0).toLocaleString()}
+                                        </span>
+                                    </div>
+                                    <p className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-600">
+                                        ₹ {discountedPrice.toLocaleString()}
+                                    </p>
+                                    <p className="text-sm text-gray-600">
+                                        You save {discountPercentage}% on this purchase!
+                                    </p>
+                                </div>
+                            ) : (
+                                <p className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-600 to-amber-600">
+                                    ₹ {product.cost.toLocaleString()}
+                                </p>
+                            )}
                         </div>
 
                         <p className="text-gray-600 leading-relaxed text-lg">
                             {product.description}
                         </p>
 
-                        {/* Compatible Models Section */}
                         {product.tyreModel && product.tyreModel.length > 0 && (
                             <div className="relative overflow-hidden bg-gradient-to-br from-yellow-50 via-amber-50 to-yellow-100 rounded-2xl p-6 border-2 border-yellow-300 shadow-lg hover:shadow-xl transition-all duration-300">
-                                {/* Animated background gradient */}
                                 <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/10 via-amber-400/10 to-yellow-400/10 animate-pulse"></div>
                                 
                                 <div className="relative">
@@ -226,9 +252,14 @@ const ProductPage = () => {
                             className="w-full bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-500 hover:to-amber-600 text-white font-bold py-5 px-8 rounded-2xl shadow-xl hover:shadow-2xl transform hover:scale-[1.02] transition-all duration-300 flex items-center justify-center gap-3 text-lg"
                         >
                             <ShoppingCart className="w-6 h-6" />
-                            Add to Cart - ₹{(product.cost * quantity).toLocaleString()}
+                            Add to Cart - ₹{(discountedPrice * quantity).toLocaleString()}
                         </button>
 
+                        {hasDiscount && (
+                            <p className="text-center text-sm text-green-600 font-semibold">
+                                🎉 Total savings: ₹{((product.discount || 0) * quantity).toLocaleString()} ({discountPercentage}% off)
+                            </p>
+                        )}
                     </div>
                 </div>
             </div>

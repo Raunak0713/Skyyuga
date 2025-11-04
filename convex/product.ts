@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { GSTValidator } from "./schema";
 
 export const getProductById = query({
     args : {
@@ -26,7 +27,9 @@ export const createProducts = mutation({
         cost : v.number(),
         category : v.string(),
         tyreSize : v.optional(v.string()),
-        tyreModel : v.optional(v.array(v.string()))
+        tyreModel : v.optional(v.array(v.string())),
+        gstRate : GSTValidator,
+        discount : v.number()
     },
     handler : async(ctx, args) => {
         const product = await ctx.db.insert("products", {
@@ -36,7 +39,9 @@ export const createProducts = mutation({
             cost : args.cost,
             category : args.category,
             tyreModel : args.tyreModel,
-            tyreSize : args.tyreSize
+            tyreSize : args.tyreSize,
+            GSTRate : args.gstRate,
+            discount : args.discount
         })
 
         return product;
@@ -52,7 +57,9 @@ export const updateProduct = mutation({
     cost: v.optional(v.number()),
     category: v.optional(v.string()),
     tyreModel: v.optional(v.array(v.string())),
-    tyreSize: v.optional(v.string())
+    tyreSize: v.optional(v.string()),
+    gstRate : v.optional(GSTValidator),
+    discount : v.optional(v.number())
   },
   handler: async (ctx, args) => {
     const product = await ctx.db.get(args.productId);
@@ -65,7 +72,9 @@ export const updateProduct = mutation({
       cost: args.cost ?? product.cost,
       category: args.category ?? product.category,
       tyreModel: args.tyreModel ?? product.tyreModel,
-      tyreSize: args.tyreSize ?? product.tyreSize
+      tyreSize: args.tyreSize ?? product.tyreSize,
+      GSTRate: args.gstRate ?? product.GSTRate,
+      discount: args.discount ?? product.discount
     });
   },
 });

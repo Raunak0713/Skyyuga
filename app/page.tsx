@@ -60,6 +60,38 @@ export default function Home() {
   const username = user?.firstName + " " + user?.lastName;
   const phone = userData?.phone
 
+  const calculateDiscountedPrice = (cost: number, discount: number) => {
+    return cost - discount;
+  };
+
+  const calculateDiscountPercentage = (cost: number, discount: number) => {
+    if (cost === 0) return 0;
+    return Math.round((discount / cost) * 100);
+  };
+
+  const calculateTotalTaxes = () => {
+    return cartItems.reduce((totalTax, item) => {
+      const discountedPrice = calculateDiscountedPrice(item.cost, item.discount || 0);
+      const itemTotal = discountedPrice * item.quantity;
+      const gstRate = typeof item.GSTRate === 'string' 
+        ? parseFloat(item.GSTRate) 
+        : (item.GSTRate || 0);
+      const itemTax = (itemTotal * gstRate) / 100;
+      return totalTax + itemTax;
+    }, 0);
+  };
+
+  const calculateSubtotal = () => {
+    return cartItems.reduce((subtotal, item) => {
+      const discountedPrice = calculateDiscountedPrice(item.cost, item.discount || 0);
+      return subtotal + (discountedPrice * item.quantity);
+    }, 0);
+  };
+
+  const calculateFinalTotal = () => {
+    return calculateSubtotal() + calculateTotalTaxes();
+  };
+
   useEffect(() => {
     if (user && userData && needsPhone) {
       setPhoneModalOpen(true);
@@ -210,7 +242,7 @@ export default function Home() {
 
       <header className="fixed top-0 w-full z-50 backdrop-blur-xl bg-white/80 border-b border-yellow-200">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-          <h1 className="text-2xl gap-x-2 flex md:text-3xl font-bold bg-gradient-to-r from-blue-500 to-blue-600 bg-clip-text text-transparent">
+          <h1 className="text-2xl gap-x-2 flex md:text-3xl font-bold bg-gradient-to-r from-yellow-500  to-yellow-600 bg-clip-text text-transparent">
             <span className="hidden md:block">Skyyuga</span>
             <Image src={"/navlogo.png"} height={25} width={40} alt="logo"/>
           </h1>
@@ -276,7 +308,6 @@ export default function Home() {
             )}
           </div>
 
-          {/* Mobile Navigation */}
           <div className="md:hidden flex items-center space-x-4">
             <a
               href="https://wa.me/919825376646"
@@ -751,6 +782,9 @@ export default function Home() {
             ) : (
               filteredProducts.map((product) => {
                 const firstImage = Array.isArray(product.imageUrl) ? product.imageUrl[0] : product.imageUrl;
+                const discountedPrice = calculateDiscountedPrice(product.cost, product.discount || 0);
+                const discountPercentage = calculateDiscountPercentage(product.cost, product.discount || 0);
+                const hasDiscount = (product.discount || 0) > 0;
                 
                 return (
                   <div
@@ -781,9 +815,25 @@ export default function Home() {
                         {product.title}
                       </h4>
                       <div className="flex items-center justify-between">
-                        <p className="text-3xl font-black bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
-                          ₹ {product.cost}
-                        </p>
+                        <div className="flex flex-col">
+                          {hasDiscount ? (
+                            <>
+                              <p className="text-lg font-semibold text-gray-400 line-through">
+                                ₹{product.cost}
+                              </p>
+                              <p className="text-3xl font-black bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
+                                ₹{discountedPrice}
+                              </p>
+                              <span className="bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">
+                                {discountPercentage}% OFF
+                              </span>
+                            </>
+                          ) : (
+                            <p className="text-3xl font-black bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
+                              ₹{product.cost}
+                            </p>
+                          )}
+                        </div>
                         <button
                           className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 px-6 py-3 rounded-full hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 shadow-lg hover:shadow-yellow-500/50 font-bold transform hover:scale-110"
                           onClick={(e) => {
@@ -894,6 +944,7 @@ export default function Home() {
             <div className="flex-1 overflow-y-auto space-y-4">
               {cartItems.map((item) => {
                 const itemImage = Array.isArray(item.imageUrl) ? item.imageUrl[0] : item.imageUrl;
+                const discountedPrice = calculateDiscountedPrice(item.cost, item.discount || 0);
                 
                 return (
                   <div
@@ -909,7 +960,7 @@ export default function Home() {
                       <div className="flex-1">
                         <p className="font-bold text-gray-900">{item.title}</p>
                         <p className="text-yellow-600 font-semibold">
-                          ₹{item.cost} × {item.quantity}
+                          ₹{discountedPrice} × {item.quantity}
                         </p>
                       </div>
                     </div>
@@ -936,7 +987,7 @@ export default function Home() {
                         </button>
                       </div>
                       <p className="font-bold text-xl text-gray-900">
-                        ₹{item.cost * item.quantity}
+                        ₹{discountedPrice * item.quantity}
                       </p>
                     </div>
                   </div>
@@ -946,10 +997,22 @@ export default function Home() {
           )}
 
           <div className="mt-6 space-y-4 border-t-2 border-yellow-200 pt-6">
-            <div className="flex justify-between items-center text-2xl font-bold">
+            <div className="flex justify-between items-center text-lg">
+              <span className="text-gray-700 font-semibold">Subtotal:</span>
+              <span className="text-gray-900 font-bold">
+                ₹{calculateSubtotal().toFixed(2)}
+              </span>
+            </div>
+            <div className="flex justify-between items-center text-lg">
+              <span className="text-gray-700 font-semibold">Total Taxes:</span>
+              <span className="text-gray-900 font-bold">
+                ₹{calculateTotalTaxes().toFixed(2)}
+              </span>
+            </div>
+            <div className="flex justify-between items-center text-2xl font-bold border-t-2 border-yellow-200 pt-4">
               <span className="text-gray-900">Total:</span>
               <span className="bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
-                ₹{total}
+                ₹{calculateFinalTotal().toFixed(2)}
               </span>
             </div>
             <button
@@ -1035,7 +1098,7 @@ export default function Home() {
               <div className="mb-6">
                 <h3 className="text-lg font-semibold mb-2">Amount to Pay</h3>
                 <p className="text-3xl font-bold text-yellow-600 mb-4">
-                  ₹{total}
+                  ₹{calculateFinalTotal().toFixed(2)}
                 </p>
 
                 {paymentMethod === "UPI" ? (
@@ -1094,7 +1157,7 @@ export default function Home() {
 
                     const orderData = {
                       products: productsForOrder,
-                      totalCost: total,
+                      totalCost: calculateFinalTotal(),
                       paymentMethod: paymentMethod,
                       referenceNumber: referenceNumber,
                       address : address,
