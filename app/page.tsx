@@ -4,32 +4,47 @@ import { api } from "@/convex/_generated/api";
 import { useQuery, useMutation } from "convex/react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { Mail, ShoppingCart, Package, Menu, X, Phone, User} from "lucide-react";
+import {
+  Mail,
+  ShoppingCart,
+  Package,
+  Menu,
+  X,
+  Phone,
+  User,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/cartContext";
 import { UserButton, useUser } from "@clerk/nextjs";
-import { checkIsAdmin } from "@/lib/checkAdmin"; 
+import { checkIsAdmin } from "@/lib/checkAdmin";
 import Image from "next/image";
 
 export default function Home() {
   const [cartOpen, setCartOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<"UPI" | "Bank Transfer">("UPI");
+  const [paymentMethod, setPaymentMethod] = useState<"UPI" | "Bank Transfer">(
+    "UPI"
+  );
   const [referenceNumber, setReferenceNumber] = useState<number | null>();
   const [userContact, setUserContact] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [phoneModalOpen, setPhoneModalOpen] = useState(false);
-  const [address, setAddress] = useState("")
+  const [address, setAddress] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [orderProcessing, setOrderProcessing] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  
-  const [selectedTireSize, setSelectedTireSize] = useState<string | undefined>("");
+
+  const [selectedTireSize, setSelectedTireSize] = useState<string | undefined>(
+    ""
+  );
   const [selectedTireModel, setSelectedTireModel] = useState<string>("");
   const [modelSearchQuery, setModelSearchQuery] = useState<string>("");
+  const [sizeSearchQuery, setSizeSearchQuery] = useState<string>("")
   const [sizeDropdownOpen, setSizeDropdownOpen] = useState(false);
   const [modelDropdownOpen, setModelDropdownOpen] = useState(false);
+  const [state, setState] = useState("");
+  const [pincode, setPincode] = useState("");
 
   const router = useRouter();
   const { user, isSignedIn } = useUser();
@@ -37,12 +52,12 @@ export default function Home() {
   const { cartItems, addToCart, updateQuantity, clearCart, total } = useCart();
 
   const products = useQuery(api.product.getAllProducts) ?? [];
-  
+
   const tireData = useQuery(api.product.getAllTyres, {
     size: selectedTireSize || undefined,
     model: selectedTireModel || undefined,
   });
-  
+
   const allTireData = useQuery(api.product.getAllTyres, {});
 
   const userData = useQuery(api.user.getUserByEmail, {
@@ -58,7 +73,7 @@ export default function Home() {
 
   const email = user?.primaryEmailAddress?.emailAddress;
   const username = user?.firstName + " " + user?.lastName;
-  const phone = userData?.phone
+  const phone = userData?.phone;
 
   const calculateDiscountedPrice = (cost: number, discount: number) => {
     return cost - discount;
@@ -71,11 +86,15 @@ export default function Home() {
 
   const calculateTotalTaxes = () => {
     return cartItems.reduce((totalTax, item) => {
-      const discountedPrice = calculateDiscountedPrice(item.cost, item.discount || 0);
+      const discountedPrice = calculateDiscountedPrice(
+        item.cost,
+        item.discount || 0
+      );
       const itemTotal = discountedPrice * item.quantity;
-      const gstRate = typeof item.GSTRate === 'string' 
-        ? parseFloat(item.GSTRate) 
-        : (item.GSTRate || 0);
+      const gstRate =
+        typeof item.GSTRate === "string"
+          ? parseFloat(item.GSTRate)
+          : item.GSTRate || 0;
       const itemTax = (itemTotal * gstRate) / 100;
       return totalTax + itemTax;
     }, 0);
@@ -83,8 +102,11 @@ export default function Home() {
 
   const calculateSubtotal = () => {
     return cartItems.reduce((subtotal, item) => {
-      const discountedPrice = calculateDiscountedPrice(item.cost, item.discount || 0);
-      return subtotal + (discountedPrice * item.quantity);
+      const discountedPrice = calculateDiscountedPrice(
+        item.cost,
+        item.discount || 0
+      );
+      return subtotal + discountedPrice * item.quantity;
     }, 0);
   };
 
@@ -111,13 +133,52 @@ export default function Home() {
     checkAdminStatus();
   }, [user]);
 
+  const statesOfIndia = [
+    "Andhra Pradesh",
+    "Arunachal Pradesh",
+    "Assam",
+    "Bihar",
+    "Chhattisgarh",
+    "Goa",
+    "Gujarat",
+    "Haryana",
+    "Himachal Pradesh",
+    "Jharkhand",
+    "Karnataka",
+    "Kerala",
+    "Madhya Pradesh",
+    "Maharashtra",
+    "Manipur",
+    "Meghalaya",
+    "Mizoram",
+    "Nagaland",
+    "Odisha",
+    "Punjab",
+    "Rajasthan",
+    "Sikkim",
+    "Tamil Nadu",
+    "Telangana",
+    "Tripura",
+    "Uttar Pradesh",
+    "Uttarakhand",
+    "West Bengal",
+    "Andaman and Nicobar Islands",
+    "Chandigarh",
+    "Dadra and Nagar Haveli and Daman and Diu",
+    "Delhi",
+    "Jammu and Kashmir",
+    "Ladakh",
+    "Lakshadweep",
+    "Puducherry",
+  ];
+
   const handlePaymentModal = async () => {
-    if(!isSignedIn){
-      return router.push("/sign-up")
+    if (!isSignedIn) {
+      return router.push("/sign-up");
     }
     setCartOpen(false);
     setCheckoutModalOpen(true);
-  }
+  };
 
   const handleSavePhoneNumber = async () => {
     if (!phoneNumber.trim()) {
@@ -144,25 +205,33 @@ export default function Home() {
     }
   };
 
-  
-
   const categories = [
     "All",
     ...Array.from(new Set(products.map((p) => p.category))),
   ];
-  
 
-  const showTireFilters = selectedCategory === "All" || selectedCategory === "Tyres";
+  const showTireFilters =
+    selectedCategory === "All" || selectedCategory === "Tyres";
   const anyTireFilterActive = selectedTireSize || selectedTireModel;
-  
+
   const filterOptions = allTireData || { uniqueSizes: [], uniqueModels: [] };
-  
-  const filteredModels = filterOptions.uniqueModels.filter(model =>
+
+  const filteredModels = filterOptions.uniqueModels.filter((model) =>
     model.toLowerCase().includes(modelSearchQuery.toLowerCase())
   );
-  
-  const isLoadingFilteredTires = showTireFilters && anyTireFilterActive && !tireData;
-  
+
+  const filteredSizes = filterOptions.uniqueSizes.filter((size) => 
+    size?.toLowerCase().includes(sizeSearchQuery.toLowerCase())
+  )
+
+  const handlePincodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (/^\d{0,6}$/.test(value)) setPincode(value);
+  };
+
+  const isLoadingFilteredTires =
+    showTireFilters && anyTireFilterActive && !tireData;
+
   let filteredProducts;
   if (showTireFilters && anyTireFilterActive && tireData) {
     filteredProducts = tireData.tyres;
@@ -244,9 +313,8 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
           <h1 className="text-2xl gap-x-2 flex md:text-3xl font-bold bg-gradient-to-r from-yellow-500  to-yellow-600 bg-clip-text text-transparent">
             <span className="hidden md:block">Skyyuga</span>
-            <Image src={"/navlogo.png"} height={25} width={40} alt="logo"/>
+            <Image src={"/navlogo.png"} height={25} width={40} alt="logo" />
           </h1>
-
 
           <div className="hidden md:flex items-center space-x-16">
             <a
@@ -255,7 +323,12 @@ export default function Home() {
               rel="noopener noreferrer"
               title="Chat on WhatsApp"
             >
-              <Image src={"/WhatsApp.svg"} alt="whatsapp" width={40} height={40}/>
+              <Image
+                src={"/WhatsApp.svg"}
+                alt="whatsapp"
+                width={40}
+                height={40}
+              />
             </a>
             <a href="mailto:akashpetroleum086@gmail.com" title="Send Email">
               <Mail className="w-6 h-6 text-blue-500 hover:text-blue-600" />
@@ -284,15 +357,15 @@ export default function Home() {
               </span>
             </button>
             {isAdmin && (
-                <button
-                  className="relative bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 px-6 py-2 rounded-full hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 shadow-lg hover:shadow-yellow-500/50 transform hover:scale-105 font-semibold"
-                  onClick={() => router.push("/admin")}
-                >
-                  <span className="flex items-center space-x-2">
-                    <span>Admin</span>
-                  </span>
-                </button>
-              )}
+              <button
+                className="relative bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 px-6 py-2 rounded-full hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 shadow-lg hover:shadow-yellow-500/50 transform hover:scale-105 font-semibold"
+                onClick={() => router.push("/admin")}
+              >
+                <span className="flex items-center space-x-2">
+                  <span>Admin</span>
+                </span>
+              </button>
+            )}
 
             {user ? (
               <div>
@@ -315,7 +388,12 @@ export default function Home() {
               rel="noopener noreferrer"
               title="Chat on WhatsApp"
             >
-              <Image src={"/WhatsApp.svg"} alt="whatsapp" width={40} height={40}/>
+              <Image
+                src={"/WhatsApp.svg"}
+                alt="whatsapp"
+                width={40}
+                height={40}
+              />
             </a>
             <a href="mailto:akashpetroleum086@gmail.com" title="Send Email">
               <Mail className="w-6 h-6 text-blue-500 hover:text-blue-600" />
@@ -350,7 +428,6 @@ export default function Home() {
           </div>
         </div>
 
-        
         {mobileMenuOpen && (
           <div className="md:hidden bg-white border-t border-yellow-200 shadow-lg">
             <div className="px-6 py-4 space-y-3">
@@ -401,7 +478,6 @@ export default function Home() {
       </header>
 
       <main className="pt-24 relative z-10">
-      
         <section className="max-w-7xl mx-auto px-6 py-20 text-center">
           <div className="space-y-6 animate-fade-in">
             <h2 className="text-4xl sm:text-5xl md:text-7xl font-black mb-6 leading-tight">
@@ -603,7 +679,6 @@ export default function Home() {
               </div>
             </div>
 
-
             <div className="hidden sm:flex justify-center overflow-x-auto pb-2">
               <div className="inline-flex bg-yellow-50 border-2 border-yellow-200 rounded-full p-1 flex-nowrap">
                 {categories.map((category) => (
@@ -639,40 +714,71 @@ export default function Home() {
                 >
                   <span>{selectedTireSize || "All Sizes"}</span>
                   <svg
-                    className={`w-5 h-5 transition-transform ${sizeDropdownOpen ? 'rotate-180' : ''}`}
+                    className={`w-5 h-5 transition-transform ${sizeDropdownOpen ? "rotate-180" : ""}`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
                   </svg>
                 </button>
-                
+
                 {sizeDropdownOpen && (
-                  <div className="absolute z-50 w-full mt-2 bg-white border-2 border-yellow-300 rounded-2xl shadow-2xl max-h-60 overflow-y-auto">
-                    <div
-                      onClick={() => {
-                        setSelectedTireSize("");
-                        setSizeDropdownOpen(false);
-                      }}
-                      className="px-6 py-3 hover:bg-yellow-50 cursor-pointer font-semibold text-gray-900 transition-colors border-b border-yellow-100"
-                    >
-                      All Sizes
+                  <div className="absolute z-50 w-full mt-2 bg-white border-2 border-yellow-300 rounded-2xl shadow-2xl max-h-60 overflow-hidden flex flex-col">
+                    {/* Search box */}
+                    <div className="p-3 border-b border-yellow-200">
+                      <input
+                        type="text"
+                        value={sizeSearchQuery}
+                        onChange={(e) => setSizeSearchQuery(e.target.value)}
+                        placeholder="Search sizes..."
+                        className="w-full px-4 py-2 border-2 border-yellow-200 rounded-full focus:outline-none focus:border-yellow-400 focus:ring-2 focus:ring-yellow-300 transition-all"
+                        onClick={(e) => e.stopPropagation()}
+                      />
                     </div>
-                    {filterOptions.uniqueSizes.map((size) => (
+
+                    {/* Dropdown list */}
+                    <div className="overflow-y-auto">
                       <div
-                        key={size}
                         onClick={() => {
-                          setSelectedTireSize(size);
+                          setSelectedTireSize("");
+                          setSizeSearchQuery("");
                           setSizeDropdownOpen(false);
                         }}
-                        className={`px-6 py-3 hover:bg-yellow-50 cursor-pointer font-semibold transition-colors border-b border-yellow-100 last:border-b-0 ${
-                          selectedTireSize === size ? 'bg-yellow-100 text-yellow-700' : 'text-gray-900'
-                        }`}
+                        className="px-6 py-3 hover:bg-yellow-50 cursor-pointer font-semibold text-gray-900 transition-colors border-b border-yellow-100"
                       >
-                        {size}
+                        All Sizes
                       </div>
-                    ))}
+
+                      {filteredSizes.length > 0 ? (
+                        filteredSizes.map((size) => (
+                          <div
+                            key={size}
+                            onClick={() => {
+                              setSelectedTireSize(size);
+                              setSizeSearchQuery("");
+                              setSizeDropdownOpen(false);
+                            }}
+                            className={`px-6 py-3 hover:bg-yellow-50 cursor-pointer font-semibold transition-colors border-b border-yellow-100 last:border-b-0 ${
+                              selectedTireSize === size
+                                ? "bg-yellow-100 text-yellow-700"
+                                : "text-gray-900"
+                            }`}
+                          >
+                            {size}
+                          </div>
+                        ))
+                      ) : (
+                        <div className="px-6 py-3 text-gray-500 text-center">
+                          No sizes found
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
@@ -687,15 +793,20 @@ export default function Home() {
                 >
                   <span>{selectedTireModel || "All Models"}</span>
                   <svg
-                    className={`w-5 h-5 transition-transform ${modelDropdownOpen ? 'rotate-180' : ''}`}
+                    className={`w-5 h-5 transition-transform ${modelDropdownOpen ? "rotate-180" : ""}`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
                   </svg>
                 </button>
-                
+
                 {modelDropdownOpen && (
                   <div className="absolute z-50 w-full mt-2 bg-white border-2 border-yellow-300 rounded-2xl shadow-2xl max-h-60 overflow-hidden flex flex-col">
                     <div className="p-3 border-b border-yellow-200">
@@ -729,7 +840,9 @@ export default function Home() {
                               setModelDropdownOpen(false);
                             }}
                             className={`px-6 py-3 hover:bg-yellow-50 cursor-pointer font-semibold transition-colors border-b border-yellow-100 last:border-b-0 ${
-                              selectedTireModel === model ? 'bg-yellow-100 text-yellow-700' : 'text-gray-900'
+                              selectedTireModel === model
+                                ? "bg-yellow-100 text-yellow-700"
+                                : "text-gray-900"
                             }`}
                           >
                             {model}
@@ -763,96 +876,102 @@ export default function Home() {
           )}
 
           <div className="grid gap-8 sm:grid-cols-2 md:grid-cols-3">
-            {isLoadingFilteredTires ? (
-              Array.from({ length: 6 }).map((_, index) => (
-                <div
-                  key={`skeleton-${index}`}
-                  className="bg-white border-2 border-gray-200 rounded-2xl overflow-hidden animate-pulse"
-                >
-                  <div className="relative h-64 bg-gray-200"></div>
-                  <div className="p-6 space-y-4">
-                    <div className="h-8 bg-gray-200 rounded w-3/4"></div>
-                    <div className="flex items-center justify-between">
-                      <div className="h-10 bg-gray-200 rounded w-1/3"></div>
-                      <div className="h-12 bg-gray-200 rounded-full w-32"></div>
-                    </div>
-                  </div>
-                </div>
-              ))
-            ) : (
-              filteredProducts.map((product) => {
-                const firstImage = Array.isArray(product.imageUrl) ? product.imageUrl[0] : product.imageUrl;
-                const discountedPrice = calculateDiscountedPrice(product.cost, product.discount || 0);
-                const discountPercentage = calculateDiscountPercentage(product.cost, product.discount || 0);
-                const hasDiscount = (product.discount || 0) > 0;
-                
-                return (
+            {isLoadingFilteredTires
+              ? Array.from({ length: 6 }).map((_, index) => (
                   <div
-                    key={product._id}
-                    onClick={() => router.push(`/product/${product._id}`)}
-                    className="group relative bg-white border-2 border-gray-200 rounded-2xl overflow-hidden hover:border-yellow-400 transition-all duration-500 hover:shadow-2xl hover:shadow-yellow-500/20 transform hover:scale-105 cursor-pointer"
+                    key={`skeleton-${index}`}
+                    className="bg-white border-2 border-gray-200 rounded-2xl overflow-hidden animate-pulse"
                   >
-                    <div className="relative overflow-hidden h-64">
-                      <img
-                        src={firstImage}
-                        alt={product.title}
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent opacity-60"></div>
-                      <div className="absolute top-4 right-4 flex flex-col gap-2 items-center">
-                        <span className="bg-yellow-400 text-gray-900 text-xs font-bold px-3 py-1 rounded-full">
-                          {product.category}
-                        </span>
-                        {product.category === "Tyres" && product.tyreSize && (
-                          <span className="bg-yellow-400 text-black text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">
-                            {product.tyreSize}
-                          </span>
-                        )}
+                    <div className="relative h-64 bg-gray-200"></div>
+                    <div className="p-6 space-y-4">
+                      <div className="h-8 bg-gray-200 rounded w-3/4"></div>
+                      <div className="flex items-center justify-between">
+                        <div className="h-10 bg-gray-200 rounded w-1/3"></div>
+                        <div className="h-12 bg-gray-200 rounded-full w-32"></div>
                       </div>
                     </div>
-                    <div className="p-6 space-y-4">
-                      <h4 className="font-bold text-2xl text-gray-900">
-                        {product.title}
-                      </h4>
-                      <div className="flex items-center justify-between">
-                        <div className="flex flex-col">
-                          {hasDiscount ? (
-                            <>
-                              <p className="text-lg font-semibold text-gray-400 line-through">
-                                ₹{product.cost}
-                              </p>
-                              <p className="text-3xl font-black bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
-                                ₹{discountedPrice}
-                              </p>
-                              <span className="bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">
-                                {discountPercentage}% OFF
-                              </span>
-                            </>
-                          ) : (
-                            <p className="text-3xl font-black bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
-                              ₹{product.cost}
-                            </p>
+                  </div>
+                ))
+              : filteredProducts.map((product) => {
+                  const firstImage = Array.isArray(product.imageUrl)
+                    ? product.imageUrl[0]
+                    : product.imageUrl;
+                  const discountedPrice = calculateDiscountedPrice(
+                    product.cost,
+                    product.discount || 0
+                  );
+                  const discountPercentage = calculateDiscountPercentage(
+                    product.cost,
+                    product.discount || 0
+                  );
+                  const hasDiscount = (product.discount || 0) > 0;
+
+                  return (
+                    <div
+                      key={product._id}
+                      onClick={() => router.push(`/product/${product._id}`)}
+                      className="group relative bg-white border-2 border-gray-200 rounded-2xl overflow-hidden hover:border-yellow-400 transition-all duration-500 hover:shadow-2xl hover:shadow-yellow-500/20 transform hover:scale-105 cursor-pointer"
+                    >
+                      <div className="relative overflow-hidden h-64">
+                        <img
+                          src={firstImage}
+                          alt={product.title}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent opacity-60"></div>
+                        <div className="absolute top-4 right-4 flex flex-col gap-2 items-center">
+                          <span className="bg-yellow-400 text-gray-900 text-xs font-bold px-3 py-1 rounded-full">
+                            {product.category}
+                          </span>
+                          {product.category === "Tyres" && product.tyreSize && (
+                            <span className="bg-yellow-400 text-black text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">
+                              {product.tyreSize}
+                            </span>
                           )}
                         </div>
-                        <button
-                          className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 px-6 py-3 rounded-full hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 shadow-lg hover:shadow-yellow-500/50 font-bold transform hover:scale-110"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            addToCart({
-                              ...product,
-                              imageUrl: firstImage
-                            });
-                            toast.success("Added to cart!");
-                          }}
-                        >
-                          Add to Cart
-                        </button>
+                      </div>
+                      <div className="p-6 space-y-4">
+                        <h4 className="font-bold text-2xl text-gray-900">
+                          {product.title}
+                        </h4>
+                        <div className="flex items-center justify-between">
+                          <div className="flex flex-col">
+                            {hasDiscount ? (
+                              <>
+                                <p className="text-lg font-semibold text-gray-400 line-through">
+                                  ₹{product.cost}
+                                </p>
+                                <p className="text-3xl font-black bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
+                                  ₹{discountedPrice}
+                                </p>
+                                <span className="bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">
+                                  {discountPercentage}% OFF
+                                </span>
+                              </>
+                            ) : (
+                              <p className="text-3xl font-black bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
+                                ₹{product.cost}
+                              </p>
+                            )}
+                          </div>
+                          <button
+                            className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 px-6 py-3 rounded-full hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 shadow-lg hover:shadow-yellow-500/50 font-bold transform hover:scale-110"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              addToCart({
+                                ...product,
+                                imageUrl: firstImage,
+                              });
+                              toast.success("Added to cart!");
+                            }}
+                          >
+                            Add to Cart
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })
-            )}
+                  );
+                })}
           </div>
         </section>
 
@@ -943,9 +1062,14 @@ export default function Home() {
           ) : (
             <div className="flex-1 overflow-y-auto space-y-4">
               {cartItems.map((item) => {
-                const itemImage = Array.isArray(item.imageUrl) ? item.imageUrl[0] : item.imageUrl;
-                const discountedPrice = calculateDiscountedPrice(item.cost, item.discount || 0);
-                
+                const itemImage = Array.isArray(item.imageUrl)
+                  ? item.imageUrl[0]
+                  : item.imageUrl;
+                const discountedPrice = calculateDiscountedPrice(
+                  item.cost,
+                  item.discount || 0
+                );
+
                 return (
                   <div
                     key={item._id}
@@ -1025,9 +1149,9 @@ export default function Home() {
         </div>
       </div>
 
-     {checkoutModalOpen && (
-        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50  flex items-center justify-center p-2 overflow-y-auto">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[95%] scale-[85%] md:scale-100 sm:max-w-md mx-auto overflow-hidden my-4">
+      {checkoutModalOpen && (
+        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-2 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl w-full  max-w-[95%] scale-[65%] md:scale-100 sm:max-w-md mx-auto overflow-hidden my-4">
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-900">
@@ -1049,14 +1173,18 @@ export default function Home() {
                   <p className="text-sm font-medium text-gray-600">Name</p>
                   <p className="text-gray-900 font-semibold">{username}</p>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Email</p>
-                  <p className="text-gray-900 font-semibold">{email}</p>
+                <div className="md:flex md:gap-x-3">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">Email</p>
+                    <p className="text-gray-900 font-semibold">{email}</p>
+                  </div>
+
+                  <div className="mt-4 md:mt-0">
+                    <p className="text-sm font-medium text-gray-600">Phone</p>
+                    <p className="text-gray-900 font-semibold">{phone}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Phone</p>
-                  <p className="text-gray-900 font-semibold">{phone}</p>
-                </div>
+
                 <div>
                   <p className="text-sm font-medium text-gray-600">Address</p>
                   <input
@@ -1067,10 +1195,47 @@ export default function Home() {
                     className="w-full font-semibold p-2.5 mt-1 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all"
                   />
                 </div>
+
+                <div className="md:flex md:gap-x-3">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">State</p>
+                    <select
+                      value={state}
+                      onChange={(e) => setState(e.target.value)}
+                      className="w-full font-semibold p-2.5 mt-1 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all"
+                    >
+                      <option value="">Select your state</option>
+                      {statesOfIndia.map((s) => (
+                        <option key={s} value={s}>
+                          {s}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">
+                      PIN Code
+                    </p>
+                    <input
+                      type="text"
+                      value={pincode}
+                      onChange={handlePincodeChange}
+                      placeholder="414141"
+                      className={`w-[100%] font-semibold p-2.5 mt-1 border rounded-lg focus:ring-2 transition-all ${
+                        pincode?.length === 6
+                          ? "border-green-400 focus:ring-green-500"
+                          : "border-gray-300 focus:ring-yellow-500 focus:border-yellow-500"
+                      }`}
+                    />
+                    {pincode && pincode?.length !== 6 && (
+                      <p className="text-xs text-red-500 mt-1">
+                        PIN code must be exactly 6 digits
+                      </p>
+                    )}
+                  </div>
+                </div>
               </div>
-
-              
-
 
               <div className="flex border-b border-gray-200 mb-6">
                 <button
@@ -1105,7 +1270,9 @@ export default function Home() {
                   <div>
                     <h4 className="text-lg font-semibold mb-2">UPI ID</h4>
                     <div className="bg-gray-100 p-3 rounded-lg">
-                      <p className="font-mono text-gray-800">9825376646.ibz@icici</p>
+                      <p className="font-mono text-gray-800">
+                        9825376646.ibz@icici
+                      </p>
                     </div>
                   </div>
                 ) : (
@@ -1117,7 +1284,8 @@ export default function Home() {
                         <span className="font-bold">072605002943</span>
                       </p>
                       <p className="font-mono text-gray-800">
-                        IFSC Code: <span className="font-bold">ICIC0000726</span>
+                        IFSC Code:{" "}
+                        <span className="font-bold">ICIC0000726</span>
                       </p>
                     </div>
                   </div>
@@ -1147,7 +1315,7 @@ export default function Home() {
                 disabled={!referenceNumber || orderProcessing}
                 onClick={async () => {
                   if (orderProcessing) return;
-                  
+
                   setOrderProcessing(true);
                   try {
                     const productsForOrder = cartItems.map((item) => ({
@@ -1160,7 +1328,7 @@ export default function Home() {
                       totalCost: calculateFinalTotal(),
                       paymentMethod: paymentMethod,
                       referenceNumber: referenceNumber,
-                      address : address,
+                      address: address,
                       name: username,
                       email: email,
                       contactNumber: phone,
@@ -1195,7 +1363,11 @@ export default function Home() {
                   }
                 }}
                 className={`w-full py-3 px-4 rounded-lg text-white font-bold text-lg transition-all ${
-                  referenceNumber && !orderProcessing && address.length > 10
+                  referenceNumber &&
+                  !orderProcessing &&
+                  address.length > 10 &&
+                  pincode &&
+                  state.length > 2
                     ? "bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 cursor-pointer transform hover:scale-105"
                     : "bg-gray-300 cursor-not-allowed"
                 }`}
@@ -1224,7 +1396,12 @@ export default function Home() {
           <div className="space-y-4">
             <h5 className="text-xl font-bold text-gray-900">Contact Us</h5>
             <div className="flex items-center space-x-3">
-              <Image src={"/WhatsApp.svg"} alt="whatsapp" width={25} height={25}/>
+              <Image
+                src={"/WhatsApp.svg"}
+                alt="whatsapp"
+                width={25}
+                height={25}
+              />
               <a
                 href="https://wa.me/919825376646"
                 target="_blank"

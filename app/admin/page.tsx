@@ -188,6 +188,15 @@ const AdminPage = () => {
     }
   };
 
+  const calculateDiscountedPrice = (cost: number, discount: number) => {
+    return cost - discount;
+  };
+
+  const calculateDiscountPercentage = (cost: number, discount: number) => {
+    if (cost === 0) return 0;
+    return Math.round((discount / cost) * 100);
+  };
+
   const addModel = () => {
     if (
       currentModel.trim() &&
@@ -323,10 +332,8 @@ const AdminPage = () => {
         ?.map((url) => url.split("/").pop())
         .filter((key): key is string => typeof key === "string" && key.length > 0) ?? [];
 
-    // 🗑 Delete product in Convex
     await deleteProduct({ productId: productToDelete });
 
-    // 🧹 Delete image from UploadThing via server action
     if (fileKeys.length > 0) {
       await deleteUploadthingFile(fileKeys);
     }
@@ -411,7 +418,7 @@ const AdminPage = () => {
 
       <div className="relative z-10 max-w-7xl mx-auto px-3 sm:px-4 md:px-6 mt-4 sm:mt-6 md:mt-8">
         <button
-          className="flex bg-yellow-400 p-2 rounded-2xl gap-x-3 font-semibold mb-7"
+          className="flex bg-yellow-400 p-2 rounded-2xl transition-all duration-300 transform hover:scale-105 gap-x-3 font-semibold mb-7"
           onClick={() => router.push("/")}
         >
           <MoveLeft />
@@ -754,6 +761,9 @@ const AdminPage = () => {
                   const imageCount = Array.isArray(product.imageUrl)
                     ? product.imageUrl.length
                     : 1;
+                  const discountedPrice = calculateDiscountedPrice(product.cost, product.discount || 0);
+                  const discountPercentage = calculateDiscountPercentage(product.cost, product.discount || 0);
+                  const hasDiscount = (product.discount || 0) > 0;
 
                   return (
                     <div
@@ -823,9 +833,23 @@ const AdminPage = () => {
                           </div>
                         )}
                         <div className="pt-2 sm:pt-3 border-t border-yellow-100">
-                          <p className="text-2xl sm:text-3xl font-black bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
-                            ₹{product.cost}
-                          </p>
+                          {hasDiscount ? (
+                            <>
+                              <p className="text-lg font-semibold text-gray-400 line-through">
+                                ₹{product.cost}
+                              </p>
+                              <p className="text-3xl font-black bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
+                                ₹{discountedPrice}
+                              </p>
+                              <span className="bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full whitespace-nowrap">
+                                {discountPercentage}% OFF
+                              </span>
+                            </>
+                          ) : (
+                            <p className="text-3xl font-black bg-gradient-to-r from-yellow-500 to-yellow-600 bg-clip-text text-transparent">
+                              ₹{product.cost}
+                            </p>
+                          )}
                         </div>
                       </div>
                     </div>
