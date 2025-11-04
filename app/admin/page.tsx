@@ -257,6 +257,10 @@ const AdminPage = () => {
       return;
     }
 
+    const discountValue = Number(selectedProduct.discount);
+    if(!discountValue){
+      toast.error("Min discount must be ₹0")
+    }
     try {
       const updateData = {
         productId: selectedProduct._id,
@@ -264,6 +268,8 @@ const AdminPage = () => {
         description: selectedProduct.description,
         imageUrl: selectedProduct.imageUrl,
         cost: costValue,
+        gstRate: selectedProduct.GSTRate,
+        discount: discountValue,
         category: selectedProduct.category,
         ...(selectedProduct.category === "Tyres" && {
           tyreSize: selectedProduct.tyreSize || "",
@@ -1309,11 +1315,11 @@ const AdminPage = () => {
                     GST <span className="text-red-500">*</span>
                   </label>
                   <select
-                    value={selectedProduct.gst || "18"}
+                    value={selectedProduct.GSTRate || "18"}
                     onChange={(e) =>
                       setSelectedProduct({
                         ...selectedProduct,
-                        gst: e.target.value,
+                        GSTRate: e.target.value,
                       })
                     }
                     className="w-full p-2 sm:p-2.5 border-2 border-yellow-200 rounded-lg sm:rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all text-sm"
