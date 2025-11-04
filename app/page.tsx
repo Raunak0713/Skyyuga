@@ -32,7 +32,7 @@ export default function Home() {
   const [modelDropdownOpen, setModelDropdownOpen] = useState(false);
 
   const router = useRouter();
-  const { user } = useUser();
+  const { user, isSignedIn } = useUser();
 
   const { cartItems, addToCart, updateQuantity, clearCart, total } = useCart();
 
@@ -79,6 +79,14 @@ export default function Home() {
     checkAdminStatus();
   }, [user]);
 
+  const handlePaymentModal = async () => {
+    if(!isSignedIn){
+      return router.push("/sign-up")
+    }
+    setCartOpen(false);
+    setCheckoutModalOpen(true);
+  }
+
   const handleSavePhoneNumber = async () => {
     if (!phoneNumber.trim()) {
       toast.error("Please enter a valid phone number");
@@ -103,6 +111,8 @@ export default function Home() {
       console.error("Error saving phone number:", error);
     }
   };
+
+  
 
   const categories = [
     "All",
@@ -943,10 +953,7 @@ export default function Home() {
               </span>
             </div>
             <button
-              onClick={() => {
-                setCartOpen(false);
-                setCheckoutModalOpen(true);
-              }}
+              onClick={() => handlePaymentModal()}
               className="w-full bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 py-4 rounded-full hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 shadow-lg hover:shadow-yellow-500/50 font-bold text-lg transform hover:scale-105"
             >
               Checkout Now
@@ -1068,7 +1075,11 @@ export default function Home() {
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
                 />
               </div>
-
+              {address && address.length < 10 && (
+                <p className="text-red-500 text-sm mt-1 animate-pulse">
+                  ⚠️ Address must be at least 10 characters long.
+                </p>
+              )}
               <button
                 disabled={!referenceNumber || orderProcessing}
                 onClick={async () => {
@@ -1121,7 +1132,7 @@ export default function Home() {
                   }
                 }}
                 className={`w-full py-3 px-4 rounded-lg text-white font-bold text-lg transition-all ${
-                  referenceNumber && !orderProcessing && address
+                  referenceNumber && !orderProcessing && address.length > 10
                     ? "bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 cursor-pointer transform hover:scale-105"
                     : "bg-gray-300 cursor-not-allowed"
                 }`}
@@ -1182,15 +1193,16 @@ export default function Home() {
           <div className="space-y-4">
             <h5 className="text-xl font-bold text-gray-900">Find Us</h5>
             <a
-              href="https://goo.gl/maps/5v7ZcCJy9h32"
+              href="https://maps.app.goo.gl/jrpoBoxsdTVkuTSAA"
               target="_blank"
               rel="noopener noreferrer"
               className="block w-full h-40 rounded-xl overflow-hidden shadow-lg transform hover:scale-105 transition-transform duration-300"
             >
               <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3671.123456789!2d70.065123!3d22.473456!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x395fc123456789ab%3A0xc123456789abcd!2sAkash%20Petroleum!5e0!3m2!1sen!2sin!4v1697612345678!5m2!1sen!2sin"
-                className="w-full h-full border-0"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3671.3856985847733!2d70.06282007537654!3d22.46950237954091!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3959ca19f086bc77%3A0x43ad1cc58fa4c7c2!2sAkash%20Petroleum!5e0!3m2!1sen!2sin!4v1730736845123!5m2!1sen!2sin"
+                className="w-full h-full border-0 pointer-events-none"
                 loading="lazy"
+                allowFullScreen
               ></iframe>
             </a>
           </div>
