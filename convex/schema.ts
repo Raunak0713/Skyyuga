@@ -3,7 +3,8 @@ import { v } from "convex/values"
 
 export const paymentValidator = v.union(
     v.literal("UPI"),
-    v.literal("Bank Transfer")
+    v.literal("Bank Transfer"),
+    v.literal("UPIQR")
 )
 
 export const GSTValidator = v.union(

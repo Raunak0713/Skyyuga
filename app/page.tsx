@@ -23,9 +23,9 @@ export default function Home() {
   const [cartOpen, setCartOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<"UPI" | "Bank Transfer">(
-    "UPI"
-  );
+  const [paymentMethod, setPaymentMethod] = useState<
+    "UPI" | "Bank Transfer" | "UPIQR"
+  >("UPI");
   const [referenceNumber, setReferenceNumber] = useState<number | null>();
   const [userContact, setUserContact] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -40,7 +40,7 @@ export default function Home() {
   );
   const [selectedTireModel, setSelectedTireModel] = useState<string>("");
   const [modelSearchQuery, setModelSearchQuery] = useState<string>("");
-  const [sizeSearchQuery, setSizeSearchQuery] = useState<string>("")
+  const [sizeSearchQuery, setSizeSearchQuery] = useState<string>("");
   const [sizeDropdownOpen, setSizeDropdownOpen] = useState(false);
   const [modelDropdownOpen, setModelDropdownOpen] = useState(false);
   const [state, setState] = useState("");
@@ -99,7 +99,7 @@ export default function Home() {
         typeof item.GSTRate === "string"
           ? parseFloat(item.GSTRate)
           : item.GSTRate || 0;
-      
+
       const itemSubtotal = itemTotal / (1 + gstRate / 100);
       return subtotal + itemSubtotal;
     }, 0);
@@ -114,7 +114,6 @@ export default function Home() {
       return total + discountedPrice * item.quantity;
     }, 0);
   };
-
 
   useEffect(() => {
     if (user && userData && needsPhone) {
@@ -222,9 +221,9 @@ export default function Home() {
     model.toLowerCase().includes(modelSearchQuery.toLowerCase())
   );
 
-  const filteredSizes = filterOptions.uniqueSizes.filter((size) => 
+  const filteredSizes = filterOptions.uniqueSizes.filter((size) =>
     size?.toLowerCase().includes(sizeSearchQuery.toLowerCase())
-  )
+  );
 
   const handlePincodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -1152,8 +1151,8 @@ export default function Home() {
       </div>
 
       {checkoutModalOpen && (
-        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-2 overflow-y-auto">
-          <div className="bg-white rounded-2xl shadow-2xl w-full  max-w-[95%] scale-[85%] md:scale-100 sm:max-w-md mx-auto overflow-hidden my-4">
+        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 flex items-start justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-[95%] md:max-w-md mx-auto overflow-hidden my-8">
             <div className="p-6">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-gray-900">
@@ -1199,7 +1198,7 @@ export default function Home() {
                 </div>
 
                 <div className="md:flex md:gap-x-3">
-                  <div>
+                  <div className="flex-1">
                     <p className="text-sm font-medium text-gray-600">State</p>
                     <select
                       value={state}
@@ -1215,7 +1214,7 @@ export default function Home() {
                     </select>
                   </div>
 
-                  <div>
+                  <div className="mt-4 md:mt-0">
                     <p className="text-sm font-medium text-gray-600">
                       PIN Code
                     </p>
@@ -1224,7 +1223,7 @@ export default function Home() {
                       value={pincode}
                       onChange={handlePincodeChange}
                       placeholder="414141"
-                      className={`w-[100%] font-semibold p-2.5 mt-1 border rounded-lg focus:ring-2 transition-all ${
+                      className={`w-full font-semibold p-2.5 mt-1 border rounded-lg focus:ring-2 transition-all ${
                         pincode?.length === 6
                           ? "border-green-400 focus:ring-green-500"
                           : "border-gray-300 focus:ring-yellow-500 focus:border-yellow-500"
@@ -1260,6 +1259,16 @@ export default function Home() {
                 >
                   Bank Transfer
                 </button>
+                <button
+                  className={`flex-1 py-3 font-medium text-center transition-colors ${
+                    paymentMethod === "UPIQR"
+                      ? "text-yellow-600 border-b-2 border-yellow-600"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                  onClick={() => setPaymentMethod("UPIQR")}
+                >
+                  UPI QR
+                </button>
               </div>
 
               <div className="mb-6">
@@ -1276,6 +1285,38 @@ export default function Home() {
                         9825376646.ibz@icici
                       </p>
                     </div>
+                  </div>
+                ) : paymentMethod === "UPIQR" ? (
+                  <div className="flex flex-col items-center">
+                    <div className="flex items-center gap-2 mb-2">
+                      <h4 className="text-lg font-semibold">Scan UPI QR</h4>
+                      <a
+                        href="/qr.jpg"
+                        download="UPI_QR_Code.jpg"
+                        className="p-2 bg-yellow-400 hover:bg-yellow-500 rounded-full transition-all shadow-md hover:shadow-lg transform hover:scale-110"
+                        title="Download QR Code"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5 text-gray-900"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                          />
+                        </svg>
+                      </a>
+                    </div>
+                    <img
+                      src="/qr.jpg"
+                      alt="UPI QR"
+                      className="w-60 h-60 rounded-xl shadow-lg"
+                    />
                   </div>
                 ) : (
                   <div>
@@ -1296,7 +1337,7 @@ export default function Home() {
 
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {paymentMethod === "UPI"
+                  {paymentMethod === "UPI" || paymentMethod === "UPIQR"
                     ? "UTR Reference Number"
                     : "Banking Transaction Reference Number"}
                 </label>
@@ -1304,7 +1345,7 @@ export default function Home() {
                   type="number"
                   value={referenceNumber || ""}
                   onChange={(e) => setReferenceNumber(Number(e.target.value))}
-                  placeholder={`Enter your ${paymentMethod === "UPI" ? "UTR" : "transaction"} reference number`}
+                  placeholder={`Enter your ${paymentMethod === "UPI" || paymentMethod === "UPIQR" ? "UTR" : "transaction"} reference number`}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"
                 />
               </div>
@@ -1382,7 +1423,6 @@ export default function Home() {
           </div>
         </div>
       )}
-
       <footer className="bg-gradient-to-r from-yellow-50 to-yellow-100 border-t border-yellow-200 mt-20">
         <div className="max-w-7xl mx-auto px-6 py-12 grid md:grid-cols-3 gap-8">
           <div className="space-y-4">
