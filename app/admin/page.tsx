@@ -22,7 +22,6 @@ import { Id } from "@/convex/_generated/dataModel";
 import { toast } from "sonner";
 import { UploadButton } from "@/lib/uploadthing";
 import { useRouter } from "next/navigation";
-import { utapi } from "@/lib/utapi";
 import { deleteUploadthingFile } from "../actions/deleteImages";
 
 type OrderStatus =
@@ -39,15 +38,19 @@ const AdminPage = () => {
 
   const allUsers = useQuery(api.user.getAllUsers, { email });
   const allOrders = useQuery(api.order.getAllOrders, { email });
-  const allProducts = useQuery(api.product.getAllProducts);
+  const productData = useQuery(api.product.getAllProducts);
+  const allProducts = productData?.products;
+  const allCategories = productData?.allCategories || [];
 
   const createProduct = useMutation(api.product.createProducts);
   const updateOrderStatus = useMutation(api.order.updateOrderStatus);
   const updateProduct = useMutation(api.product.updateProduct);
   const deleteProduct = useMutation(api.product.deleteProduct);
-  
+
   const [activeTab, setActiveTab] = useState("users");
   const [searchTerm, setSearchTerm] = useState("");
+  const [newCategory, setNewCategory] = useState("");
+  const [isCustomCategory, setIsCustomCategory] = useState(false);
   const [addProductModal, setAddProductModal] = useState(false);
   const [editProductModal, setEditProductModal] = useState(false);
   const [editOrderModal, setEditOrderModal] = useState(false);
@@ -274,8 +277,8 @@ const AdminPage = () => {
     }
 
     const discountValue = Number(selectedProduct.discount);
-    if(!discountValue){
-      toast.error("Min discount must be ₹0")
+    if (!discountValue) {
+      toast.error("Min discount must be ₹0");
     }
     try {
       const updateData = {
@@ -324,28 +327,30 @@ const AdminPage = () => {
   };
 
   const confirmDelete = async () => {
-  if (!productToDelete || !product) return;
+    if (!productToDelete || !product) return;
 
-  try {
-    const fileKeys =
-      product.imageUrl
-        ?.map((url) => url.split("/").pop())
-        .filter((key): key is string => typeof key === "string" && key.length > 0) ?? [];
+    try {
+      const fileKeys =
+        product.imageUrl
+          ?.map((url) => url.split("/").pop())
+          .filter(
+            (key): key is string => typeof key === "string" && key.length > 0
+          ) ?? [];
 
-    await deleteProduct({ productId: productToDelete });
+      await deleteProduct({ productId: productToDelete });
 
-    if (fileKeys.length > 0) {
-      await deleteUploadthingFile(fileKeys);
+      if (fileKeys.length > 0) {
+        await deleteUploadthingFile(fileKeys);
+      }
+
+      toast.success("Product deleted successfully!");
+      setDeleteConfirmModal(false);
+      setProductToDelete(null);
+    } catch (err) {
+      console.error("Error deleting product:", err);
+      toast.error("Failed to delete product.");
     }
-
-    toast.success("Product deleted successfully!");
-    setDeleteConfirmModal(false);
-    setProductToDelete(null);
-  } catch (err) {
-    console.error("Error deleting product:", err);
-    toast.error("Failed to delete product.");
-  }
-};
+  };
 
   const toggleStatusFilter = (status: OrderStatus) => {
     const newFilters = new Set(statusFilters);
@@ -679,17 +684,13 @@ const AdminPage = () => {
                           </p>
                         </div>
                         <div className="bg-yellow-50 rounded-lg sm:rounded-xl p-3 sm:p-4">
-                          <p className="text-xs text-gray-600 mb-1">
-                            State 
-                          </p>
+                          <p className="text-xs text-gray-600 mb-1">State</p>
                           <p className="font-semibold text-gray-900 text-xs sm:text-sm break-all">
                             {order.state || "—"}
                           </p>
                         </div>
                         <div className="bg-yellow-50 rounded-lg sm:rounded-xl p-3 sm:p-4">
-                          <p className="text-xs text-gray-600 mb-1">
-                            PinCode
-                          </p>
+                          <p className="text-xs text-gray-600 mb-1">PinCode</p>
                           <p className="font-semibold text-gray-900 text-xs sm:text-sm break-all">
                             {order.pincode || "—"}
                           </p>
@@ -777,8 +778,14 @@ const AdminPage = () => {
                   const imageCount = Array.isArray(product.imageUrl)
                     ? product.imageUrl.length
                     : 1;
-                  const discountedPrice = calculateDiscountedPrice(product.cost, product.discount || 0);
-                  const discountPercentage = calculateDiscountPercentage(product.cost, product.discount || 0);
+                  const discountedPrice = calculateDiscountedPrice(
+                    product.cost,
+                    product.discount || 0
+                  );
+                  const discountPercentage = calculateDiscountPercentage(
+                    product.cost,
+                    product.discount || 0
+                  );
                   const hasDiscount = (product.discount || 0) > 0;
 
                   return (
@@ -917,24 +924,51 @@ const AdminPage = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-1.5 sm:mb-2">
-                    Category <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={newProduct.category}
-                    onChange={(e) =>
-                      setNewProduct({ ...newProduct, category: e.target.value })
-                    }
-                    className="w-full p-2 sm:p-2.5 border-2 border-yellow-200 rounded-lg sm:rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all text-sm"
-                    required
-                  >
-                    <option value="">Select Category</option>
-                    <option value="Tyres">Tyres</option>
-                    <option value="Lubricants">Lubricants</option>
-                    <option value="Car Accessories">Car Accessories</option>
-                    <option value="Parts">Parts</option>
-                  </select>
-                </div>
+  <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-1.5 sm:mb-2">
+    Category <span className="text-red-500">*</span>
+  </label>
+
+  <select
+    value={isCustomCategory ? "Other" : newProduct.category}
+    onChange={(e) => {
+      if (e.target.value === "Other") {
+        setIsCustomCategory(true);
+        setNewProduct({ ...newProduct, category: "" });
+      } else {
+        setIsCustomCategory(false);
+        setNewProduct({ ...newProduct, category: e.target.value });
+      }
+    }}
+    className="w-full p-2 sm:p-2.5 border-2 border-yellow-200 rounded-lg sm:rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all text-sm"
+    required
+  >
+    <option value="">Select Category</option>
+
+    {/* 👇 Dynamically render all categories */}
+    {allCategories.map((category) => (
+      <option key={category as string} value={category as string}>
+        {category as string}
+      </option>
+    ))}
+
+    {/* 👇 Extra option to add new */}
+    <option value="Other">➕ Add New Category</option>
+  </select>
+
+  {/* 👇 Input shows only if "Add New" selected */}
+  {isCustomCategory && (
+    <input
+      type="text"
+      placeholder="Enter new category name"
+      value={newCategory}
+      onChange={(e) => {
+        setNewCategory(e.target.value);
+        setNewProduct({ ...newProduct, category: e.target.value });
+      }}
+      className="w-full mt-2 p-2 sm:p-2.5 border-2 border-yellow-200 rounded-lg sm:rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all text-sm"
+    />
+  )}
+</div>
               </div>
 
               {newProduct.category === "Tyres" && (

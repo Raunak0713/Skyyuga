@@ -12,12 +12,22 @@ export const getProductById = query({
 })
 
 export const getAllProducts = query({
-    args : {},
-    handler : async(ctx) => {
-        const products = await ctx.db.query("products").collect()
-        return products
-    },
-})
+  args: {},
+  handler: async (ctx) => {
+    const products = await ctx.db.query("products").collect();
+
+    const categorySet = new Set();
+    for (const product of products) {
+      if (product.category) {
+        categorySet.add(product.category);
+      }
+    }
+
+    const allCategories = Array.from(categorySet);
+
+    return { products, allCategories };
+  },
+});
 
 export const createProducts = mutation({
     args : {

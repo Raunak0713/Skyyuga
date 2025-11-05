@@ -51,7 +51,8 @@ export default function Home() {
 
   const { cartItems, addToCart, updateQuantity, clearCart, total } = useCart();
 
-  const products = useQuery(api.product.getAllProducts) ?? [];
+  const productData = useQuery(api.product.getAllProducts);
+  const products = productData?.products || []
 
   const tireData = useQuery(api.product.getAllTyres, {
     size: selectedTireSize || undefined,
@@ -893,7 +894,7 @@ export default function Home() {
                     </div>
                   </div>
                 ))
-              : filteredProducts.map((product) => {
+              : filteredProducts!.map((product) => {
                   const firstImage = Array.isArray(product.imageUrl)
                     ? product.imageUrl[0]
                     : product.imageUrl;
