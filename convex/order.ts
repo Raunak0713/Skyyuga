@@ -18,6 +18,8 @@ export const createOrder = mutation({
         address : v.string(),
         userId : v.id("users"),
         contactNumber : v.string(),
+        state: v.string(),
+        pincode: v.string()
     },
     handler : async(ctx, args) => {
         const order = await ctx.db.insert("orders", {
@@ -30,7 +32,9 @@ export const createOrder = mutation({
             userId : args.userId,
             status : "PENDING",
             email : args.email,
-            contactNumber : args.contactNumber
+            contactNumber : args.contactNumber,
+            pincode : args.pincode,
+            state : args.state
         })
 
         return order

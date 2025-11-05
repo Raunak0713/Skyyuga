@@ -643,7 +643,7 @@ const AdminPage = () => {
                           </button>
                         </div>
                       </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-3 sm:mb-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-3 sm:mb-4">
                         <div className="bg-yellow-50 rounded-lg sm:rounded-xl p-3 sm:p-4">
                           <p className="text-xs text-gray-600 mb-1">Email</p>
                           <p className="font-semibold text-gray-900 text-xs sm:text-sm break-all">
@@ -666,7 +666,7 @@ const AdminPage = () => {
                         </div>
                         <div className="bg-yellow-50 rounded-lg sm:rounded-xl p-3 sm:p-4">
                           <p className="text-xs text-gray-600 mb-1">
-                            Reference #
+                            Reference Number
                           </p>
                           <p className="font-semibold text-gray-900 text-xs sm:text-sm break-all">
                             {order.referenceNumber || "—"}
@@ -676,6 +676,22 @@ const AdminPage = () => {
                           <p className="text-xs text-gray-600 mb-1">Address</p>
                           <p className="font-semibold text-gray-900 text-xs sm:text-sm">
                             {order.address || "—"}
+                          </p>
+                        </div>
+                        <div className="bg-yellow-50 rounded-lg sm:rounded-xl p-3 sm:p-4">
+                          <p className="text-xs text-gray-600 mb-1">
+                            State 
+                          </p>
+                          <p className="font-semibold text-gray-900 text-xs sm:text-sm break-all">
+                            {order.state || "—"}
+                          </p>
+                        </div>
+                        <div className="bg-yellow-50 rounded-lg sm:rounded-xl p-3 sm:p-4">
+                          <p className="text-xs text-gray-600 mb-1">
+                            PinCode
+                          </p>
+                          <p className="font-semibold text-gray-900 text-xs sm:text-sm break-all">
+                            {order.pincode || "—"}
                           </p>
                         </div>
                       </div>

@@ -52,6 +52,8 @@ export default defineSchema({
         referenceNumber : v.number(),
         name : v.string(),
         address  :v.string(),
+        state : v.string(),
+        pincode: v.string(),
         email : v.string(),
         status : orderStatusValidator,
         contactNumber : v.string(),

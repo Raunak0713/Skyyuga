@@ -85,7 +85,11 @@ export default function Home() {
   };
 
   const calculateTotalTaxes = () => {
-    return cartItems.reduce((totalTax, item) => {
+    return calculateFinalTotal() - calculateSubtotal();
+  };
+
+  const calculateSubtotal = () => {
+    return cartItems.reduce((subtotal, item) => {
       const discountedPrice = calculateDiscountedPrice(
         item.cost,
         item.discount || 0
@@ -95,24 +99,22 @@ export default function Home() {
         typeof item.GSTRate === "string"
           ? parseFloat(item.GSTRate)
           : item.GSTRate || 0;
-      const itemTax = (itemTotal * gstRate) / 100;
-      return totalTax + itemTax;
-    }, 0);
-  };
-
-  const calculateSubtotal = () => {
-    return cartItems.reduce((subtotal, item) => {
-      const discountedPrice = calculateDiscountedPrice(
-        item.cost,
-        item.discount || 0
-      );
-      return subtotal + discountedPrice * item.quantity;
+      
+      const itemSubtotal = itemTotal / (1 + gstRate / 100);
+      return subtotal + itemSubtotal;
     }, 0);
   };
 
   const calculateFinalTotal = () => {
-    return calculateSubtotal() + calculateTotalTaxes();
+    return cartItems.reduce((total, item) => {
+      const discountedPrice = calculateDiscountedPrice(
+        item.cost,
+        item.discount || 0
+      );
+      return total + discountedPrice * item.quantity;
+    }, 0);
   };
+
 
   useEffect(() => {
     if (user && userData && needsPhone) {
@@ -313,7 +315,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
           <h1 className="text-2xl gap-x-2 flex md:text-3xl font-bold bg-gradient-to-r from-yellow-500  to-yellow-600 bg-clip-text text-transparent">
             <span className="hidden md:block">Skyyuga</span>
-            <Image src={"/navlogo.png"} height={25} width={40} alt="logo" />
+            <Image src={"/navLogo.png"} height={25} width={40} alt="logo" />
           </h1>
 
           <div className="hidden md:flex items-center space-x-16">
@@ -1331,6 +1333,8 @@ export default function Home() {
                       address: address,
                       name: username,
                       email: email,
+                      state: state,
+                      pincode: pincode,
                       contactNumber: phone,
                     };
 

@@ -161,6 +161,12 @@ const OrderPage = () => {
                                                                         <p className="text-sm text-gray-600 flex items-start gap-2">
                                                                             <span><span className="font-semibold">Address:</span> {order.address}</span>
                                                                         </p>
+                                                                        <p className="text-sm text-gray-600 flex items-start gap-2">
+                                                                            <span><span className="font-semibold">State:</span> {order.state}</span>
+                                                                        </p>
+                                                                        <p className="text-sm text-gray-600 flex items-start gap-2">
+                                                                            <span><span className="font-semibold">PinCode:</span> {order.pincode}</span>
+                                                                        </p>
                                                                     </div>
                                                                     <div className="space-y-2">
                                                                         <h4 className="font-bold text-gray-900 flex items-center gap-2">
@@ -260,6 +266,12 @@ const OrderPage = () => {
                                                      <p className="text-sm text-gray-600"><span className="font-semibold">Phone:</span> {order.contactNumber}</p>
                                                     <p className="text-sm text-gray-600 flex items-start gap-2">
                                                         <span><span className="font-semibold">Address:</span> {order.address}</span>
+                                                    </p>
+                                                    <p className="text-sm text-gray-600 flex items-start gap-2">
+                                                        <span><span className="font-semibold">State:</span> {order.state}</span>
+                                                    </p>
+                                                    <p className="text-sm text-gray-600 flex items-start gap-2">
+                                                        <span><span className="font-semibold">PinCode:</span> {order.pincode}</span>
                                                     </p>
                                                 </div>
                                                 <div className="space-y-2">

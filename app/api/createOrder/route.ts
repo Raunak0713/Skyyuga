@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(req : NextRequest){
     try {
         const body = await req.json()
-        const { products, totalCost, paymentMethod, referenceNumber,name, address, email, contactNumber } = body;
+        const { products, totalCost, paymentMethod, referenceNumber,name, address, email, contactNumber, state, pincode } = body;
         const user = await fetchQuery(api.user.getUserByEmail, {email : email})
 
         const order = await fetchMutation(api.order.createOrder, {
@@ -17,7 +17,9 @@ export async function POST(req : NextRequest){
             address,
             email,
             userId : user?._id!,
-            contactNumber
+            contactNumber,
+            pincode,
+            state
         })
 
         return NextResponse.json(
@@ -41,5 +43,4 @@ export async function POST(req : NextRequest){
             }
         )
     }
-    
 }
