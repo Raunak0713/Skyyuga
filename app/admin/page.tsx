@@ -49,7 +49,7 @@ const AdminPage = () => {
 
   const [activeTab, setActiveTab] = useState("users");
   const [searchTerm, setSearchTerm] = useState("");
-  const [isDeleting, setIsDeleting] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false);
   const [newCategory, setNewCategory] = useState("");
   const [isCustomCategory, setIsCustomCategory] = useState(false);
   const [addProductModal, setAddProductModal] = useState(false);
@@ -154,8 +154,12 @@ const AdminPage = () => {
     }
 
     const discountValue = Number(newProduct.discount);
-    if (!newProduct.discount) {
+    if (!newProduct.discount || discountValue < 1) {
       toast.error("Min Discount should be ₹0");
+    }
+
+    if (discountValue > costValue) {
+      toast.error("Discount should be smaller than original cost");
     }
 
     try {
@@ -187,6 +191,7 @@ const AdminPage = () => {
         discount: "",
       });
       setCurrentModel("");
+      setNewCategory("");
     } catch (err) {
       toast.error("Failed to create product.");
     }
@@ -329,7 +334,7 @@ const AdminPage = () => {
 
   const confirmDelete = async () => {
     if (!productToDelete || !product) return;
-    setIsDeleting(true)
+    setIsDeleting(true);
     try {
       const fileKeys =
         product.imageUrl
@@ -351,7 +356,7 @@ const AdminPage = () => {
       console.error("Error deleting product:", err);
       toast.error("Failed to delete product.");
     } finally {
-      setIsDeleting(false)
+      setIsDeleting(false);
     }
   };
 
@@ -1081,9 +1086,23 @@ const AdminPage = () => {
                 <input
                   type="number"
                   value={newProduct.cost}
-                  onChange={(e) =>
-                    setNewProduct({ ...newProduct, cost: e.target.value })
-                  }
+                  onChange={(e) => {
+                    const value = parseFloat(e.target.value) || 0;
+                    if (value >= 0) {
+                      setNewProduct({ ...newProduct, cost: e.target.value });
+                      // Reset discount if it exceeds new cost
+                      if (
+                        newProduct.discount &&
+                        parseFloat(newProduct.discount) > value
+                      ) {
+                        setNewProduct({
+                          ...newProduct,
+                          cost: e.target.value,
+                          discount: "",
+                        });
+                      }
+                    }
+                  }}
                   className="w-full p-2 sm:p-2.5 border-2 border-yellow-200 rounded-lg sm:rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all text-sm"
                   placeholder="Enter product cost"
                   required
@@ -1118,14 +1137,30 @@ const AdminPage = () => {
                   <input
                     type="number"
                     value={newProduct.discount}
-                    onChange={(e) =>
-                      setNewProduct({ ...newProduct, discount: e.target.value })
-                    }
+                    onChange={(e) => {
+                      const discountValue = parseFloat(e.target.value) || 0;
+                      const costValue = parseFloat(newProduct.cost) || 0;
+
+                      // Allow only non-negative values and discount <= cost
+                      if (discountValue >= 0 && discountValue <= costValue) {
+                        setNewProduct({
+                          ...newProduct,
+                          discount: e.target.value,
+                        });
+                      }
+                    }}
                     className="w-full p-2 sm:p-2.5 border-2 border-yellow-200 rounded-lg sm:rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all text-sm"
                     placeholder="Enter discount amount"
                     min="0"
                     step="0.01"
                   />
+                  {newProduct.discount &&
+                    parseFloat(newProduct.discount) >
+                      parseFloat(newProduct.cost || "0") && (
+                      <p className="text-xs text-red-500 mt-1">
+                        Discount cannot exceed cost
+                      </p>
+                    )}
                 </div>
               </div>
 
