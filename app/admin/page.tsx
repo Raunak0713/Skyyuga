@@ -49,6 +49,7 @@ const AdminPage = () => {
 
   const [activeTab, setActiveTab] = useState("users");
   const [searchTerm, setSearchTerm] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false)
   const [newCategory, setNewCategory] = useState("");
   const [isCustomCategory, setIsCustomCategory] = useState(false);
   const [addProductModal, setAddProductModal] = useState(false);
@@ -328,7 +329,7 @@ const AdminPage = () => {
 
   const confirmDelete = async () => {
     if (!productToDelete || !product) return;
-
+    setIsDeleting(true)
     try {
       const fileKeys =
         product.imageUrl
@@ -349,6 +350,8 @@ const AdminPage = () => {
     } catch (err) {
       console.error("Error deleting product:", err);
       toast.error("Failed to delete product.");
+    } finally {
+      setIsDeleting(false)
     }
   };
 
@@ -924,51 +927,60 @@ const AdminPage = () => {
                 </div>
 
                 <div>
-  <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-1.5 sm:mb-2">
-    Category <span className="text-red-500">*</span>
-  </label>
+                  <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-1.5 sm:mb-2">
+                    Category <span className="text-red-500">*</span>
+                  </label>
 
-  <select
-    value={isCustomCategory ? "Other" : newProduct.category}
-    onChange={(e) => {
-      if (e.target.value === "Other") {
-        setIsCustomCategory(true);
-        setNewProduct({ ...newProduct, category: "" });
-      } else {
-        setIsCustomCategory(false);
-        setNewProduct({ ...newProduct, category: e.target.value });
-      }
-    }}
-    className="w-full p-2 sm:p-2.5 border-2 border-yellow-200 rounded-lg sm:rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all text-sm"
-    required
-  >
-    <option value="">Select Category</option>
+                  <select
+                    value={isCustomCategory ? "Other" : newProduct.category}
+                    onChange={(e) => {
+                      if (e.target.value === "Other") {
+                        setIsCustomCategory(true);
+                        setNewProduct({ ...newProduct, category: "" });
+                      } else {
+                        setIsCustomCategory(false);
+                        setNewProduct({
+                          ...newProduct,
+                          category: e.target.value,
+                        });
+                      }
+                    }}
+                    className="w-full p-2 sm:p-2.5 border-2 border-yellow-200 rounded-lg sm:rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all text-sm"
+                    required
+                  >
+                    <option value="">Select Category</option>
 
-    {/* 👇 Dynamically render all categories */}
-    {allCategories.map((category) => (
-      <option key={category as string} value={category as string}>
-        {category as string}
-      </option>
-    ))}
+                    {/* 👇 Dynamically render all categories */}
+                    {allCategories.map((category) => (
+                      <option
+                        key={category as string}
+                        value={category as string}
+                      >
+                        {category as string}
+                      </option>
+                    ))}
 
-    {/* 👇 Extra option to add new */}
-    <option value="Other">➕ Add New Category</option>
-  </select>
+                    {/* 👇 Extra option to add new */}
+                    <option value="Other">➕ Add New Category</option>
+                  </select>
 
-  {/* 👇 Input shows only if "Add New" selected */}
-  {isCustomCategory && (
-    <input
-      type="text"
-      placeholder="Enter new category name"
-      value={newCategory}
-      onChange={(e) => {
-        setNewCategory(e.target.value);
-        setNewProduct({ ...newProduct, category: e.target.value });
-      }}
-      className="w-full mt-2 p-2 sm:p-2.5 border-2 border-yellow-200 rounded-lg sm:rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all text-sm"
-    />
-  )}
-</div>
+                  {/* 👇 Input shows only if "Add New" selected */}
+                  {isCustomCategory && (
+                    <input
+                      type="text"
+                      placeholder="Enter new category name"
+                      value={newCategory}
+                      onChange={(e) => {
+                        setNewCategory(e.target.value);
+                        setNewProduct({
+                          ...newProduct,
+                          category: e.target.value,
+                        });
+                      }}
+                      className="w-full mt-2 p-2 sm:p-2.5 border-2 border-yellow-200 rounded-lg sm:rounded-xl focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-400 transition-all text-sm"
+                    />
+                  )}
+                </div>
               </div>
 
               {newProduct.category === "Tyres" && (
@@ -1262,6 +1274,7 @@ const AdminPage = () => {
                   <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-1.5 sm:mb-2">
                     Category <span className="text-red-500">*</span>
                   </label>
+
                   <select
                     value={selectedProduct.category}
                     onChange={(e) =>
@@ -1274,10 +1287,16 @@ const AdminPage = () => {
                     required
                   >
                     <option value="">Select Category</option>
-                    <option value="Tyres">Tyres</option>
-                    <option value="Lubricants">Lubricants</option>
-                    <option value="Car Accessories">Car Accessories</option>
-                    <option value="Parts">Parts</option>
+
+                    {/* 👇 Dynamically render all categories */}
+                    {allCategories?.map((category) => (
+                      <option
+                        key={category as string}
+                        value={category as string}
+                      >
+                        {category as string}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -1639,6 +1658,7 @@ const AdminPage = () => {
                     setDeleteConfirmModal(false);
                     setProductToDelete(null);
                   }}
+                  disabled={isDeleting}
                   className="text-gray-900 hover:bg-white/20 rounded-full p-1.5 sm:p-2 transition-colors"
                 >
                   <X className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -1678,9 +1698,10 @@ const AdminPage = () => {
                 </button>
                 <button
                   onClick={confirmDelete}
+                  disabled={isDeleting}
                   className="flex-1 px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 rounded-lg sm:rounded-xl hover:from-yellow-500 hover:to-yellow-600 transition-all duration-300 shadow-lg hover:shadow-yellow-500/50 font-bold text-sm sm:text-base transform hover:scale-105 order-1 sm:order-2"
                 >
-                  Delete Product
+                  {isDeleting ? "Deleting" : "Delete Product"}
                 </button>
               </div>
             </div>
