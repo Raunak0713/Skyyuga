@@ -502,7 +502,7 @@ export default function Home() {
               {[
                 "/images/apollo.jpeg",
                 "/images/bharatpet.jpeg",
-                "/images/bridge.jpeg",
+                "/images/bridgestone.jpg",
                 "/images/castrol.jpeg",
                 "/images/ceat.jpeg",
                 "/images/hp.jpeg",
@@ -525,7 +525,7 @@ export default function Home() {
               {[
                 "/images/apollo.jpeg",
                 "/images/bharatpet.jpeg",
-                "/images/bridge.jpeg",
+                "/images/bridgestone.jpg",
                 "/images/castrol.jpeg",
                 "/images/ceat.jpeg",
                 "/images/hp.jpeg",
@@ -553,7 +553,7 @@ export default function Home() {
               {[
                 "/images/apollo.jpeg",
                 "/images/bharatpet.jpeg",
-                "/images/bridge.jpeg",
+                "/images/bridgestone.jpg",
                 "/images/castrol.jpeg",
                 "/images/ceat.jpeg",
                 "/images/hp.jpeg",
@@ -576,7 +576,7 @@ export default function Home() {
               {[
                 "/images/apollo.jpeg",
                 "/images/bharatpet.jpeg",
-                "/images/bridge.jpeg",
+                "/images/bridgestone.jpg",
                 "/images/castrol.jpeg",
                 "/images/ceat.jpeg",
                 "/images/hp.jpeg",
