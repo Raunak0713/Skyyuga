@@ -490,8 +490,7 @@ export default function Home() {
               <span className="text-gray-900">All In One Place</span>
             </h2>
             <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto px-4">
-              Tyres, Lubricating & Industrial Oil, Grease, Car Oil, Fuel & Air
-              Filters, Car Accessories, Car Spanner & More
+              Tyres, Tubes, Lubricating & Industrial Oils And Greases, Fuel Oil And Air Filters, Car Accessories, Car Spanner & More...
             </p>
           </div>
         </section>
