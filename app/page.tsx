@@ -505,6 +505,10 @@ export default function Home() {
                 "/images/castrol.jpeg",
                 "/images/ceat.jpeg",
                 "/images/hp.jpeg",
+                "/images/avis.jpg",
+                "/images/design.jpg",
+                "/images/salvo.jpg",
+                "/images/tvs.jpg",
                 "/images/indianoil.jpeg",
                 "/images/jk.jpeg",
               ].map((src, index) => (
@@ -528,6 +532,10 @@ export default function Home() {
                 "/images/castrol.jpeg",
                 "/images/ceat.jpeg",
                 "/images/hp.jpeg",
+                "/images/avis.jpg",
+                "/images/design.jpg",
+                "/images/salvo.jpg",
+                "/images/tvs.jpg",
                 "/images/indianoil.jpeg",
                 "/images/jk.jpeg",
               ].map((src, index) => (
@@ -556,6 +564,10 @@ export default function Home() {
                 "/images/castrol.jpeg",
                 "/images/ceat.jpeg",
                 "/images/hp.jpeg",
+                "/images/avis.jpg",
+                "/images/design.jpg",
+                "/images/salvo.jpg",
+                "/images/tvs.jpg",
                 "/images/indianoil.jpeg",
                 "/images/jk.jpeg",
               ].map((src, index) => (
@@ -579,6 +591,10 @@ export default function Home() {
                 "/images/castrol.jpeg",
                 "/images/ceat.jpeg",
                 "/images/hp.jpeg",
+                "/images/avis.jpg",
+                "/images/design.jpg",
+                "/images/salvo.jpg",
+                "/images/tvs.jpg",
                 "/images/indianoil.jpeg",
                 "/images/jk.jpeg",
               ].map((src, index) => (
